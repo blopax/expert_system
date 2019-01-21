@@ -11,13 +11,16 @@ class File:
         self.fact_nb = 0
         self.queri_nb = 0
         self.rules = []
+        self.polish = []
         self.conclusions = []
+        self.queris_status = {}
+        self.facts_status = {}
 
     def display_lines(self):
         i = 0
         while i < len(self.lines):
             print(self.lines[i])
-            i = i + 1
+            i += 1
 
     def is_imply(self, line, i):
         if i + 1 < len(line) and line[i] == '=' and line[i + 1] == '>':
@@ -46,7 +49,7 @@ class File:
                 pass
             else:
                 return False
-            j = j + 1
+            j += 1
         return True
 
     def check_rule_newline(self, line, i):
@@ -79,7 +82,7 @@ class File:
             if line[j].isupper() == False and self.is_logical(line[j], line, j) == False and line[j] != ' ' and line[j] != '\t':
                 print ("line : " + line + "\t\tError format: fact character unvalid: " + line[j])
                 return False
-            j = j + 1
+            j += 1
         return True
 
     def rule_enough_info(self, line, i):
@@ -89,13 +92,13 @@ class File:
         b = 0
         while j < len(line) and line[j] != '#':
             if (line[j].isupper() and nb_implies == 0):
-                a = a + 1
+                a += 1
             if (line[j].isupper() and nb_implies == 1):
-                b = b + 1
+                b += 1
             if self.is_imply(line, j) == True:
-                nb_implies = nb_implies + 1
-                j = j + 1
-            j = j + 1
+                nb_implies += 1
+                j += 1
+            j += 1
         if a == 0:
             print ("line : " + line + "\t\tError format: No proposition before implie.")
             return False
@@ -119,7 +122,7 @@ class File:
                 opened_par = opened_par + 1
             elif line[j] == ')':
                 closed_par = closed_par + 1
-            j = j + 1
+            j += 1
         if opened_par != closed_par:
             print ("line : " + line + "\t\tError format: Parentheses format error.")
             return False
@@ -134,11 +137,11 @@ class File:
                 while k < len(line) and line[k] != '#' and line[k] != ')':
                     if line[k].isupper():
                         content = content + 1
-                    k = k + 1
+                    k += 1
                 if content == 0:
                     print ("line : " + line + "\t\tError format: Parentheses contains nothing.")
                     return False
-            j = j + 1
+            j += 1
         return True
 
     def check_not(self, line, i):
@@ -151,7 +154,7 @@ class File:
                 elif line[j + 1].isupper() == False and line[j + 1] != '(':
                     print ("line : " + line + "\t\tError format: \"!\" not followed by capital letter or parentheses.")
                     return False
-            j = j + 1
+            j += 1
         return True
 
     def check_around_operator(self, line, i):
@@ -160,17 +163,17 @@ class File:
             if self.is_operator(line[j]):
                 k = j - 1
                 while k >= 0 and (line[k] == ' ' or line[k] == '\t'):
-                    k = k - 1
+                    k -= 1
                 if line[k].isupper() == False and line[k] != ')':
                     print ("line : " + line + "\t\tError format: no capital letter or \")\" before operator: " + line[j])
                     return False
                 k = j + 1
                 while k < len(line)  and (line[k] == ' ' or line[k] == '\t'):
-                    k = k + 1
+                    k += 1
                 if k >= len(line) or (line[k].isupper() == False and line[k] != '(' and line[k] != '!'):
                     print ("line : " + line + "\t\tError format: no capital letter, \"!\" or \"(\" after operator: " + line[j])
                     return False
-            j = j + 1
+            j += 1
         return True
 
     def check_letters_in_a_row(self, line, i):
@@ -179,22 +182,26 @@ class File:
             if line[j].isupper():
                 k = j + 1
                 while k < len(line) and line[k] != '#' and (line[k] == ' ' or line[k] == '\t'):
-                    k = k + 1
+                    k += 1
                 if k < len(line) and (line[k].isupper() or line[k] == '!' or line[k] == '('):
                     print ("line : " + line + "\t\tError format: letter followed by letter, \"!\", or \"(\" at char: " + line[j])
                     return False
-            j = j + 1
+            j += 1
         return True
 
     def check_conclusion(self, line, i):
         j = 0
         while j < len(line) and line[j] != '#' and self.is_imply(line, j) == False:
-            j = j + 1
+            j += 1
         while j < len(line) and line[j] != '#':
+            if line[j].isupper():
+                if line.rfind(line[j]) > j:
+                    print ("line : " + line + "\t\tError format: Conclusion contains char : " + line[j] + ", twice.")
+                    return False
             if line[j] == '|' or line[j] == '^':
                 print ("line : " + line + "\t\tError format: Conclusion contains undefined behaviour at char : " + line[j])
                 return False
-            j = j + 1
+            j += 1
         return True
 
     def check_fact(self, line, i):
@@ -203,12 +210,12 @@ class File:
             return False
         j = 1
         while j < len(line) and line[j].isupper():
-            j = j + 1
+            j += 1
         while j < len(line) and line[j] != '#':
             if line[j] != ' ' and line[j] != '\t':
                 print ("line : " + line + "\t\tError format: fact line unvalid char at : " + line[j])
                 return False
-            j = j + 1
+            j += 1
         return True
 
     def check_queri(self, line, i):
@@ -217,12 +224,12 @@ class File:
             return False
         j = 1
         while j < len(line) and line[j].isupper():
-            j = j + 1
+            j += 1
         while j < len(line) and line[j] != '#':
             if line[j] != ' ' and line[j] != '\t':
                 print ("line : " + line + "\t\tError format: queri line unvalid char at : " + line[j])
                 return False
-            j = j + 1
+            j += 1
         return True
 
     def rule_is_ok(self, line, i):
@@ -236,14 +243,14 @@ class File:
             return False
         if self.check_letters_in_a_row(line, i) == False or self.check_conclusion(line, i) == False:
             return False
-        self.rule_nb = self.rule_nb + 1
+        self.rule_nb += 1
         return True
 
     def display_rules(self):
         i = 0
         while i < len(self.rules):
             print(self.rules[i])
-            i = i + 1
+            i += 1
 
     def add_rule(self, line):
         treat_line = line.replace(" ", "")
@@ -337,24 +344,190 @@ class File:
             elif self.check_if_comment(self.lines[i], i) == False:
                     print ("Error type: line is not a rule, fact, queri, comment, or empty line")
                     return False
-            i = i + 1
+            i += 1
         return True
 
     def display_data(self):
         j = 0
         while j < len(self.rules):
             print(self.rules[j] + " => " + self.conclusions[j])
-            j = j + 1
+            j += 1
         print()
         self.display_facts()
         print()
         self.display_queries()
 
+    def add_char(self, line, char, position):
+        tmp = line
+        tmp_bis = list(tmp)
+        tmp_bis.insert(position, char)
+        return ''.join(tmp_bis)
+
+    def remove_char(self, line, position):
+        tmp = line
+        tmp_bis = list(tmp)
+        del(tmp_bis[position])
+        return ''.join(tmp_bis)
+
+    def remove_double_neg(self, line):
+        tmp = line
+        j = 0
+        while j < len(tmp):
+            if tmp[j] == '!' and tmp[j + 1] == '!':
+                tmp = self.remove_char(tmp, j)
+                tmp = self.remove_char(tmp, j)
+            j += 1
+        return tmp
+
+    def distribute_conclusion(self):
+        i = 0
+        while i < len(self.conclusions):
+            j = 0
+            self.conclusions[i] = self.conclusions[i].replace("+", "")
+            while j < len(self.conclusions[i]):
+                if self.conclusions[i][j] == '!' and self.conclusions[i][j + 1] == '(':
+                    k = j + 2
+                    count = 1
+                    while k < len(self.conclusions[i]) and count > 0:
+                        if self.conclusions[i][k] == ')':
+                            count -= 1
+                        elif self.conclusions[i][k] == '(':
+                            count += 1
+                        elif self.conclusions[i][k].isupper():
+                            self.conclusions[i] = self.add_char(self.conclusions[i], '!', k)
+                            k = k + 1
+                        k += 1
+                    self.conclusions[i] = self.remove_char(self.conclusions[i], j)
+                    self.conclusions[i] = self.remove_double_neg(self.conclusions[i])
+                j += 1
+            self.conclusions[i] = self.conclusions[i].replace("(", "")
+            self.conclusions[i] = self.conclusions[i].replace(")", "")
+            i += 1
+
+    def is_symbol(self, char):
+        if char == '(' or char == ')':
+            return 1
+        elif char == '^':
+            return 2
+        elif char == '|':
+            return 3
+        elif char == '+':
+            return 4
+        elif char == '!':
+            return 5
+        else:
+            return -1
+
+    def reverse_polish_notation(self, line):
+        i = 0
+        final_str = []
+        stack = []
+        while i < len(line):
+            if line[i].isupper():
+                final_str.append(line[i])
+            elif self.is_symbol(line[i]) > 0:
+                if line[i] == '(':
+                    stack.append(line[i])
+                elif line[i] == ')':
+                    k = len(stack) - 1
+                    while stack[k] != '(':
+                        final_str.append(stack.pop())
+                        k -= 1
+                    stack.pop()
+                else:
+                    if len(stack) > 0 and self.is_symbol(line[i]) > self.is_symbol(stack[len(stack) - 1]):
+                        stack.append(line[i])
+                    else:
+                        j = len(stack) - 1
+                        while j > 0 and self.is_symbol(line[i]) <= self.is_symbol(stack[j]):
+                            final_str.append(stack.pop())
+                            j -= 1
+                        stack.append(line[i])
+            i += 1
+        i = len(stack) - 1
+        while i >= 0:
+            final_str.append(stack.pop())
+            i -= 1
+        return ''.join(final_str)
+
+    def treat_rules(self):
+        i = 0
+        while i < len(self.rules):
+            self.polish.append(self.reverse_polish_notation(self.rules[i]))
+            i += 1
+
+    def display_polishes(self):
+        i = 0
+        print()
+        while i < len(self.polish):
+            print(self.polish[i])
+            i += 1
+        print()
+
+    def treat_facts(self):
+    #use char in self.facts_status (renvoie True ou False)
+        i = 0
+        while i < len(self.facts):
+            if self.facts[i].isupper():
+                self.facts_status[self.facts[i]] = "T"
+            i += 1
+
+    def treat_queris(self):
+    #T --> True
+    #F --> False
+    #U --> Unknown
+        i = 0
+        while i < len(self.queris):
+            if self.queris[i].isupper():
+                if self.queris[i] in self.facts_status:
+                    self.queris_status[self.queris[i]] = "T"
+                else:
+                    self.queris_status[self.queris[i]] = "U"
+            i += 1
+
+    def replace_char(self, line, char, i):
+        tmp = list(line)
+        tmp[i] = char
+        return "".join(tmp)
+
+    def is_rule_true(self, line):
+        print(line)
+        i = 0
+        tmp = line
+        while i < len(tmp):
+            if tmp[i].isupper():
+                if tmp[i] in self.facts_status:
+                    tmp = self.replace_char(tmp, 'T', i)
+                else:
+                    tmp = self.replace_char(tmp, 'F', i)
+            elif:
+                #continue HERRE avec dispatch des operators
+                pass
+            i += 1
+        return True
+
+    def find_solution(self):
+        i = 0
+        while i < len(self.queris):
+            j = 0
+            while j < len(self.conclusions):
+                if self.conclusions[j].find(self.queris[i]) >= 0:
+                    if self.is_rule_true(self.polish[j]):
+                        print ("YAAAAY")
+                j += 1
+            i += 1
+
 def treat_entry(arg):
     if os.path.isfile(arg):
         fichier = File(arg)
         if fichier.parse() and fichier.rule_nb != 0 and fichier.fact_nb == 1 and fichier.queri_nb == 1:
+            fichier.distribute_conclusion()
             fichier.display_data()
+            fichier.treat_rules()
+            fichier.treat_facts()
+            fichier.treat_queris()
+            fichier.display_polishes()
+            fichier.find_solution()
             #verify if any incoherences in rules or not -> backward chaining
             #verify if any endless reasonning in rules or not -> backward chaining
             #verify is there is any unknown statement(from rules) in fact and query -> say its undetermined
@@ -374,7 +547,7 @@ def main(argv):
             print ("File " + arg + " not well formated. Please give .txt files only.")
         if i != len(argv) - 1:
             print("\n-----------------------------------\n")
-        i = i + 1
+        i += 1
 
 if __name__ == "__main__":
     main(sys.argv[1:])
