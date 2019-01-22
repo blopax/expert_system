@@ -13,8 +13,9 @@ class File:
         self.rules = []
         self.polish = []
         self.conclusions = []
-        self.queris_status = {}
-        self.facts_status = {}
+        self.struct_facts = []
+        self.struct_rules = []
+        self.correspondance = {}
 
     def display_lines(self):
         i = 0
@@ -464,58 +465,180 @@ class File:
             i += 1
         print()
 
-    def treat_facts(self):
-    #use char in self.facts_status (renvoie True ou False)
-        i = 0
-        while i < len(self.facts):
-            if self.facts[i].isupper():
-                self.facts_status[self.facts[i]] = "T"
-            i += 1
-
-    def treat_queris(self):
-    #T --> True
-    #F --> False
-    #U --> Unknown
-        i = 0
-        while i < len(self.queris):
-            if self.queris[i].isupper():
-                if self.queris[i] in self.facts_status:
-                    self.queris_status[self.queris[i]] = "T"
-                else:
-                    self.queris_status[self.queris[i]] = "U"
-            i += 1
-
     def replace_char(self, line, char, i):
         tmp = list(line)
         tmp[i] = char
         return "".join(tmp)
 
-    def is_rule_true(self, line):
-        print(line)
+    def struct_fact_doesnt_exist(self, char):
         i = 0
-        tmp = line
-        while i < len(tmp):
-            if tmp[i].isupper():
-                if tmp[i] in self.facts_status:
-                    tmp = self.replace_char(tmp, 'T', i)
-                else:
-                    tmp = self.replace_char(tmp, 'F', i)
-            elif:
-                #continue HERRE avec dispatch des operators
-                pass
+        while i < len(self.struct_facts):
+            if char == self.struct_facts[i].name:
+                return False
             i += 1
         return True
 
-    def find_solution(self):
+    def display_facts_structures(self):
         i = 0
-        while i < len(self.queris):
+        while i < len(self.struct_facts):
+            print ("struct fact of " + self.struct_facts[i].name + "\n\tindex = ", end='')
+            print (self.struct_facts[i].index)
+            print ("\tstatus = " + self.struct_facts[i].status)
             j = 0
-            while j < len(self.conclusions):
-                if self.conclusions[j].find(self.queris[i]) >= 0:
-                    if self.is_rule_true(self.polish[j]):
-                        print ("YAAAAY")
+            print ("\trules dependant of " + self.struct_facts[i].name + ":")
+            if (len(self.struct_facts[i].dependant_rules) == 0):
+                print ("\t\tNone")
+            while j < len(self.struct_facts[i].dependant_rules):
+                print ("\t\tstruct rule index: ", end='')
+                print (self.struct_facts[i].dependant_rules[j], end='')
+                print (" = " + self.struct_rules[self.struct_facts[i].dependant_rules[j]].rule_npi)
+                j += 1
+            j = 0
+            print ("\t" + self.struct_facts[i].name + " depends on those rules:")
+            if (len(self.struct_facts[i].rules_i_depend_on) == 0):
+                print ("\t\tNone")
+            while j < len(self.struct_facts[i].rules_i_depend_on):
+                print ("\t\tstruct rule index: ", end='')
+                print(self.struct_facts[i].rules_i_depend_on[j], end='')
+                print (" = " + self.struct_rules[self.struct_facts[i].rules_i_depend_on[j]].rule_npi)
+                j += 1
+            print()
+            i += 1
+        print (self.correspondance)
+
+    def create_facts_structures(self):
+        i = 0
+        while i < len(self.facts):
+            if self.facts[i].isupper() and self.struct_fact_doesnt_exist(self.facts[i]):
+                self.struct_facts.append(struct_fact(self.facts[i], len(self.struct_facts), "T"))
+                self.correspondance[self.struct_facts[len(self.struct_facts) - 1].name] = self.struct_facts[len(self.struct_facts) - 1].index
+            i += 1
+        i = 0
+        while i < len(self.polish):
+            j = 0
+            while j < len(self.polish[i]):
+                if self.polish[i][j].isupper() and self.struct_fact_doesnt_exist(self.polish[i][j]):
+                    self.struct_facts.append(struct_fact(self.polish[i][j], len(self.struct_facts)))
+                    self.correspondance[self.struct_facts[len(self.struct_facts) - 1].name] = self.struct_facts[len(self.struct_facts) - 1].index
                 j += 1
             i += 1
+        i = 0
+        while i < len(self.conclusions):
+            j = 0
+            while j < len(self.conclusions[i]):
+                if self.conclusions[i][j].isupper() and self.struct_fact_doesnt_exist(self.conclusions[i][j]):
+                    self.struct_facts.append(struct_fact(self.conclusions[i][j], len(self.struct_facts)))
+                    self.correspondance[self.struct_facts[len(self.struct_facts) - 1].name] = self.struct_facts[len(self.struct_facts) - 1].index
+                j += 1
+            i += 1
+        i = 0
+        while i < len(self.queris):
+            if self.queris[i].isupper() and self.struct_fact_doesnt_exist(self.queris[i]):
+                self.struct_facts.append(struct_fact(self.queris[i], len(self.struct_facts)))
+                self.correspondance[self.struct_facts[len(self.struct_facts) - 1].name] = self.struct_facts[len(self.struct_facts) - 1].index
+            i += 1
+
+    def display_rules_structures(self):
+        i = 0
+        while i < len(self.struct_rules):
+            print ("struct rules of " + self.struct_rules[i].rule_npi + " => "+self.struct_rules[i].conclusion +  "\n\tindex = ", end='')
+            print (self.struct_facts[i].index)
+            print ("\talready checked = ", end='')
+            print(self.struct_rules[i].already_checked)
+            j = 0
+            print ("\tlist implies yes " + ":")
+            if (len(self.struct_rules[i].implies_yes) == 0):
+                print ("\t\tNone")
+            while j < len(self.struct_rules[i].implies_yes):
+                print ("\t\tstruct facts index: ", end='')
+                print(self.struct_rules[i].implies_yes[j], end='')
+                print (" = " + self.struct_facts[self.struct_rules[i].implies_yes[j]].name)
+                j += 1
+            j = 0
+            print ("\tlist implies no " + ":")
+            if (len(self.struct_rules[i].implies_no) == 0):
+                print ("\t\tNone")
+            while j < len(self.struct_rules[i].implies_no):
+                print ("\t\tstruct facts index: ", end='')
+                print(self.struct_rules[i].implies_no[j], end='')
+                print (" = " + self.struct_facts[self.struct_rules[i].implies_no[j]].name)
+                j += 1
+            j = 0
+            print ("\t" + self.struct_rules[i].rule_npi + " depends on those facts:")
+            if (len(self.struct_rules[i].depends_on) == 0):
+                print ("\t\tNone")
+            while j < len(self.struct_rules[i].depends_on):
+                print ("\t\tstruct fact index: ", end='')
+                print (self.struct_rules[i].depends_on[j], end='')
+                print (" = " + self.struct_facts[self.struct_rules[i].depends_on[j]].name)
+                j += 1
+            print()
+            print (self.correspondance)
+            i += 1
+
+    def link_doesnt_exist(self, char, rule_struct):
+        i = 0
+        while i < len(rule_struct.depends_on):
+            if self.struct_facts[rule_struct.depends_on[i]].name == char:
+                return False
+            i+= 1
+        return True
+
+    def create_rules_structures(self):
+        i = 0
+        while i < len(self.polish):
+            self.struct_rules.append(struct_rule(self.polish[i], self.conclusions[i], i))
+            j = 0
+            while j < len(self.conclusions[i]):
+                if self.conclusions[i][j].isupper() and j + 1< len(self.conclusions[i]) and self.conclusions[i][j + 1] != '!':
+                    self.struct_rules[i].implies_yes.append(self.correspondance.get(self.conclusions[i][j]))
+                    self.struct_facts[self.correspondance.get(self.conclusions[i][j])].rules_i_depend_on.append(i)
+                elif self.conclusions[i][j].isupper() and j + 1 == len(self.conclusions[i]):
+                    self.struct_rules[i].implies_yes.append(self.correspondance.get(self.conclusions[i][j]))
+                    self.struct_facts[self.correspondance.get(self.conclusions[i][j])].rules_i_depend_on.append(i)
+                elif self.conclusions[i][j].isupper() and j + 1 < len(self.conclusions[i]) and self.conclusions[i][j + 1] == '!':
+                    self.struct_rules[i].implies_no.append(self.correspondance.get(self.conclusions[i][j]))
+                    self.struct_facts[self.correspondance.get(self.conclusions[i][j])].rules_i_depend_on.append(i)
+                    j += 1
+                j += 1
+            j = 0
+            while j < len(self.polish[i]):
+                if self.polish[i][j].isupper() and self.link_doesnt_exist(self.polish[i][j], self.struct_rules[i]):
+                    self.struct_rules[i].depends_on.append(self.correspondance[self.polish[i][j]])
+                    self.struct_facts[self.correspondance.get(self.polish[i][j])].dependant_rules.append(i)
+                j += 1
+            i += 1
+
+    def create_global_graph(self):
+        self.create_facts_structures()
+        self.display_facts_structures()
+        self.create_rules_structures()
+        self.display_rules_structures()
+        self.display_facts_structures()
+
+    def solve(self):
+        #reprendre ici !!!
+        pass
+
+class struct_fact:
+    
+    def __init__(self, name, index, status = "U"):
+        self.name = name
+        self.index = index
+        self.status = status
+        self.dependant_rules = []
+        self.rules_i_depend_on = []
+
+class struct_rule:
+    
+    def __init__(self, rule, conclusion, index):
+        self.rule_npi = rule
+        self.conclusion = conclusion
+        self.index = index
+        self.already_checked = False
+        self.implies_yes = []
+        self.implies_no = []
+        self.depends_on = []
 
 def treat_entry(arg):
     if os.path.isfile(arg):
@@ -524,10 +647,9 @@ def treat_entry(arg):
             fichier.distribute_conclusion()
             fichier.display_data()
             fichier.treat_rules()
-            fichier.treat_facts()
-            fichier.treat_queris()
             fichier.display_polishes()
-            fichier.find_solution()
+            fichier.create_global_graph()
+            fichier solve()
             #verify if any incoherences in rules or not -> backward chaining
             #verify if any endless reasonning in rules or not -> backward chaining
             #verify is there is any unknown statement(from rules) in fact and query -> say its undetermined
@@ -550,4 +672,6 @@ def main(argv):
         i += 1
 
 if __name__ == "__main__":
+    st = "abcd"
+    print(st == "abcd")
     main(sys.argv[1:])
