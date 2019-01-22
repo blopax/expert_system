@@ -609,12 +609,13 @@ class File:
                 j += 1
             i += 1
 
+    def display_graph(self):
+        self.display_facts_structures()
+        self.display_rules_structures()
+
     def create_global_graph(self):
         self.create_facts_structures()
-        self.display_facts_structures()
         self.create_rules_structures()
-        self.display_rules_structures()
-        self.display_facts_structures()
 
     def solve(self):
         #reprendre ici !!!
@@ -645,11 +646,12 @@ def treat_entry(arg):
         fichier = File(arg)
         if fichier.parse() and fichier.rule_nb != 0 and fichier.fact_nb == 1 and fichier.queri_nb == 1:
             fichier.distribute_conclusion()
-            fichier.display_data()
+            #fichier.display_data()
             fichier.treat_rules()
-            fichier.display_polishes()
+            #fichier.display_polishes()
             fichier.create_global_graph()
-            fichier solve()
+            fichier.display_graph()
+            fichier.solve()
             #verify if any incoherences in rules or not -> backward chaining
             #verify if any endless reasonning in rules or not -> backward chaining
             #verify is there is any unknown statement(from rules) in fact and query -> say its undetermined
@@ -672,6 +674,4 @@ def main(argv):
         i += 1
 
 if __name__ == "__main__":
-    st = "abcd"
-    print(st == "abcd")
     main(sys.argv[1:])
