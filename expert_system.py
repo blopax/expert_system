@@ -1,6 +1,7 @@
 import sys
 import os
 
+
 class File:
     
     def __init__(self, file_name):
@@ -227,16 +228,16 @@ class File:
             j += 1
         return True
 
-    def check_queri(self, line, i):
+    def check_query(self, line, i):
         if line[0] != '?':
-            print ("line : " + line + "\t\tError format: queri line doesn't start with \"?\"")
+            print ("line : " + line + "\t\tError format: queryline doesn't start with \"?\"")
             return False
         j = 1
         while j < len(line) and line[j].isupper():
             j += 1
         while j < len(line) and line[j] != '#':
             if line[j] != ' ' and line[j] != '\t':
-                print ("line : " + line + "\t\tError format: queri line unvalid char at : " + line[j])
+                print ("line : " + line + "\t\tError format: queryline unvalid char at : " + line[j])
                 return False
             j += 1
         return True
@@ -298,7 +299,7 @@ class File:
 
     def queri_is_ok(self, line, i):
         if self.queri_nb != 0:
-            print("Error format: Too many queri lines")
+            print("Error format: Too many querylines")
             return False
         if self.rule_nb == 0:
             print("Error format: No rules before queries")
@@ -308,21 +309,21 @@ class File:
         if self.lines[i - 1] != '':
             print("Error format: No newline before queries")
             return False
-        if self.check_queri(line, i) == False:
+        if self.check_query(line, i) == False:
             return False
         else:
             self.queri_nb = self.queri_nb + 1
             return True
 
     def display_queries(self):
-        print(self.queris)
+        print(self.queries)
 
     def add_queries(self, line):
         treat_line = line.replace(" ", "")
         treat_line_bis = treat_line.replace("\t", "")
         treat_line_ter = treat_line_bis.split("#")
         treat_line_quar = treat_line_ter[0].replace("?", "")
-        self.queris = treat_line_quar
+        self.queries = treat_line_quar
 
     def parse(self):
         i = 0
@@ -548,9 +549,9 @@ class File:
                 j += 1
             i += 1
         i = 0
-        while i < len(self.queris):
-            if self.queris[i].isupper() and self.struct_fact_doesnt_exist(self.queris[i]):
-                self.struct_facts.append(struct_fact(self.queris[i], len(self.struct_facts)))
+        while i < len(self.queries):
+            if self.queries[i].isupper() and self.struct_fact_doesnt_exist(self.queries[i]):
+                self.struct_facts.append(struct_fact(self.queries[i], len(self.struct_facts)))
                 self.correspondance[self.struct_facts[len(self.struct_facts) - 1].name] = self.struct_facts[len(self.struct_facts) - 1].index
             i += 1
 
@@ -688,7 +689,7 @@ class File:
                         self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_yes[j]].status = "U"
                         self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_yes[j]].already_checked = False
                         self.force_u_rules(self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_yes[j]].name)
-                        self.solve_queri(self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_yes[j]].name)
+                        self.solve_query(self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_yes[j]].name)
                     j += 1
                 j = 0
                 while j < len(self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_no):
@@ -696,7 +697,7 @@ class File:
                         self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_no[j]].status = "U"
                         self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_no[j]].already_checked = False
                         self.force_u_rules(self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_no[j]].name)
-                        self.solve_queri(self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_no[j]].name)
+                        self.solve_query(self.struct_facts[self.struct_rules[self.struct_facts[self.correspondance.get(char)].dependant_rules[i]].implies_no[j]].name)
                     j += 1
                 i += 1
 
@@ -711,11 +712,11 @@ class File:
             else:
                 if self.struct_facts[self.correspondance.get(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)].is_contradictory == False:
                     self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].status = "T"
-                if self.solve_queri(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name) == False:
+                if self.solve_query(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name) == False:
                     self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].status = "U"
                     if self.lst_error_ok(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name):
                         self.lst_error.append(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)
-                        print("Error contradiction for queri: " + self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)
+                        print("Error contradiction for query: " + self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)
                         self.struct_facts[self.correspondance.get(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)].is_contradictory = True
                         self.struct_facts[self.correspondance.get(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)].status = "U"
                         self.force_u_rules(self.struct_facts[self.struct_rules[struct_rule.index].implies_yes[j]].name)
@@ -732,11 +733,11 @@ class File:
             else:
                 if self.struct_facts[self.correspondance.get(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)].is_contradictory == False:
                     self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].status = "F"
-                if self.solve_queri(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name) == False:
+                if self.solve_query(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name) == False:
                     self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].status = "U"
                     if self.lst_error_ok(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name):
                         self.lst_error.append(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)
-                        print("Error contradiction for queri: " + self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)
+                        print("Error contradiction for query: " + self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)
                         self.struct_facts[self.correspondance.get(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)].is_contradictory = True
                         self.struct_facts[self.correspondance.get(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)].status = "U"
                         self.force_u_rules(self.struct_facts[self.struct_rules[struct_rule.index].implies_no[j]].name)
@@ -760,7 +761,7 @@ class File:
         if self.struct_facts[self.correspondance.get(tmp[i])].status != "U":
             tmp[i] = self.struct_facts[self.correspondance.get(tmp[i])].status
         elif self.struct_facts[self.correspondance.get(tmp[i])].already_checked == False and self.lst_ok(tmp[i]):
-            self.solve_queri(tmp[i])
+            self.solve_query(tmp[i])
             tmp[i] = self.struct_facts[self.correspondance.get(tmp[i])].status
         #print(" ===> " + ''.join(tmp))
 
@@ -917,7 +918,7 @@ class File:
             i += 1
         return True
 
-    def solve_queri(self, char):
+    def solve_query(self, char):
         if self.lst_ok(char):
             self.lst.append(char)
         fact = self.struct_facts[self.correspondance.get(char)]
@@ -946,14 +947,14 @@ class File:
         fact.already_checked = True
         return True
 
-    def all_queris_are_checked(self):
+    def all_queries_are_checked(self):
         i = 0
-        while i < len(self.queris):
-            if self.struct_facts[self.correspondance.get(self.queris[i])].already_checked == False:
+        while i < len(self.queries):
+            if self.struct_facts[self.correspondance.get(self.queries[i])].already_checked == False:
                 return False
             j = 0
-            while j < len(self.struct_facts[self.correspondance.get(self.queris[i])].rules_i_depend_on):
-                if self.struct_rules[self.struct_facts[self.correspondance.get(self.queris[i])].rules_i_depend_on[j]].already_checked == False:
+            while j < len(self.struct_facts[self.correspondance.get(self.queries[i])].rules_i_depend_on):
+                if self.struct_rules[self.struct_facts[self.correspondance.get(self.queries[i])].rules_i_depend_on[j]].already_checked == False:
                     return False
                 j += 1
             i += 1
@@ -968,34 +969,37 @@ class File:
         return True
 
     def solve(self):
-        while self.all_queris_are_checked() == False:
+        while self.all_queries_are_checked() == False:
             i = 0
-            #print(self.queris[i])
-            while i < len(self.queris):
-                if self.solve_queri(self.queris[i]) == False:
-                    if self.lst_error_ok(self.queris[i]):
-                        self.lst_error.append(self.queris[i])
-                        self.struct_facts[self.correspondance.get(self.queris[i])].is_contradictory = True
-                        self.struct_facts[self.correspondance.get(self.queris[i])].status = "U"
-                        print("Error contradiction for queri: " + self.queris[i])
-                        self.set_checked_status_at_false(self.queris[i])
-                        self.set_checked_facts_at_false(self.queris[i])
-                        self.force_u_rules(self.queris[i])
+            #print(self.queries[i])
+            while i < len(self.queries):
+                if self.solve_query(self.queries[i]) == False:
+                    if self.lst_error_ok(self.queries[i]):
+                        self.lst_error.append(self.queries[i])
+                        self.struct_facts[self.correspondance.get(self.queries[i])].is_contradictory = True
+                        self.struct_facts[self.correspondance.get(self.queries[i])].status = "U"
+                        print("Error contradiction for query: " + self.queries[i])
+                        self.set_checked_status_at_false(self.queries[i])
+                        self.set_checked_facts_at_false(self.queries[i])
+                        self.force_u_rules(self.queries[i])
                 i += 1
 
     def display_result(self):
         i = 0
-        while i < len(self.queris):
-            if self.lst_display_ok(self.queris[i]) and self.struct_facts[self.correspondance.get(self.queris[i])].is_contradictory == False:
-                self.lst_display.append(self.queris[i])
-                print(self.queris[i] + " is ", end='')
-                if self.struct_facts[self.correspondance.get(self.queris[i])].status == "U":
-                    print("unknown.")
-                elif self.struct_facts[self.correspondance.get(self.queris[i])].status == "F":
-                    print("false.")
-                elif self.struct_facts[self.correspondance.get(self.queris[i])].status == "T":
-                    print("true.")
+        result = ""
+        while i < len(self.queries):
+            if self.lst_display_ok(self.queries[i]) and self.struct_facts[self.correspondance.get(self.queries[i])].is_contradictory == False:
+                self.lst_display.append(self.queries[i])
+                result += self.queries[i] + " is "
+                if self.struct_facts[self.correspondance.get(self.queries[i])].status == "U":
+                    result += "unknown.\n"
+                elif self.struct_facts[self.correspondance.get(self.queries[i])].status == "F":
+                    result += "false.\n"
+                elif self.struct_facts[self.correspondance.get(self.queries[i])].status == "T":
+                    result += "true.\n"
             i += 1
+        return result
+
 
 class struct_fact:
     
@@ -1032,21 +1036,21 @@ def treat_entry(arg):
             fichier.create_global_graph()
             #fichier.display_graph()
             fichier.solve()
-            fichier.display_result()
+            return_str = fichier.display_result()
             #fichier.display_graph()
-            pass
         else:
-            print("File " + arg + " not well formated.")
+            return_str = "File " + arg + " not well formated."
     else:
-        print ("File " + arg + " not found")
+        return_str = "File " + arg + " not found"
+    return return_str
 
 def main(argv):
     i = 0
     for arg in argv:
         if arg.find('.txt') > 0:
-            treat_entry(arg)
+            print(treat_entry(arg))
         else:
-            print ("File " + arg + " not well formated. Please give .txt files only.")
+            print("File " + arg + " not well formated. Please give .txt files only.")
         if i != len(argv) - 1:
             print("\n-----------------------------------\n")
         i += 1

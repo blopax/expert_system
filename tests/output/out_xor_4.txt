@@ -1,0 +1,3 @@
+A is true.
+B is true.
+C is true.
