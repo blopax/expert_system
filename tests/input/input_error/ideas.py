@@ -21,3 +21,6 @@ if no facts are initially trye then a simple "=" followed by a new line is used
 
 que se passe t il si ABC et ordre ?BCA ordre alpha ou ds ordre demande ?
 et si ?BCAB
+
+
+paranthese non fermante ou trop ouvrante

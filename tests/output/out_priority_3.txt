@@ -1,0 +1,8 @@
+A is true.
+B is true.
+C is true.
+D is true.
+E is true.
+F is true.
+G is true.
+H is true.

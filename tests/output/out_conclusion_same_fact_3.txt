@@ -1,0 +1,5 @@
+A is false.
+B is true.
+C is unknown.
+D is true.
+E is true.

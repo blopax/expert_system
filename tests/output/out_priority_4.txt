@@ -1,0 +1,7 @@
+A is true.
+B is false.
+C is false.
+D is false.
+G is false.
+H is false.
+I is true.
