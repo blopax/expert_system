@@ -1,0 +1,3 @@
+Error format: Too many fact lines
+Error type: fact
+File tests/input/error/error_20.txt not well formated.

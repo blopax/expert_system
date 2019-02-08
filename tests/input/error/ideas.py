@@ -3,13 +3,7 @@ facts, then a list of queries. For each of these queries, the pro-gram must, giv
 the query is true, false, or undetermined
 
 By default, all facts are false, and can only be made true by the initial facts statement,or by application of a rule
-
-fact
-can
-only
-be
-undetermined if the
-ruleset is ambigu - ous,
+fact can only be undetermined if theruleset is ambigu - ous,
 for example if I say "A is true, also if A then B or C", then B and C are undetermined.
 
 If there is an error in the input,

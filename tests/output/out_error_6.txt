@@ -1,0 +1,2 @@
+Error format: No facts before queries
+File tests/input/error/error_6.txt not well formated.

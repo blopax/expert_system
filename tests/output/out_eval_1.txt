@@ -1,0 +1,4 @@
+A is true.
+F is true.
+K is false.
+P is true.

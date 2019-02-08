@@ -1,0 +1,3 @@
+Error contradiction for query: A
+B is false.
+C is false.

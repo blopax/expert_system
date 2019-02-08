@@ -1,0 +1,19 @@
+#comment
+#
+
+A | B  + A => C + !(!B + H + !( !(A + G) + D))
+(A + !F + !(C | E)) + G => D #comment
+
+=BCA
+
+?DW  #oui
+
+
+# 2 eme regle ne sert a rien car !(C|E) est faux
+# 1e regle ne donne pas d'info sur D (il peut etre positif ou negatif) car !B et faux donc C + !() est vrai
+
+# aussi utiliser des !(A + B) en conclusion revient a utiliser des ou en conclusion je pense pas que tu geres ca.
+# C + !(!B + H + !( !(A + G) + D))
+# C + !(!B+H+ !((!A + D) | (!G + D) ))
+# C + !(!B + H + ((A | ! D) + (G | !D)))
+# C + (B | !H | (!A + D) | (!G + D))

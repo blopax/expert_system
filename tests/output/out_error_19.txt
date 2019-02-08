@@ -1,0 +1,3 @@
+line : C => C           Error format: all facts must be in one block.
+Error type: rule
+File tests/input/error/error_19.txt not well formated.

@@ -1,0 +1,3 @@
+line : A + B > C                Error format: fact character unvalid: >
+Error type: rule
+File tests/input/error/error_25.txt not well formated.

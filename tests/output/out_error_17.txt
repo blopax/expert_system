@@ -1,0 +1,3 @@
+line : (((A + B)))) => C                Error format: Parentheses format error.
+Error type: rule
+File tests/input/error/error_17.txt not well formated.

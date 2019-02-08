@@ -1,0 +1,3 @@
+line : A => B | C #if accepts or in conclusion should be undefined              Error format: Conclusion contains undefined behaviour at char : |
+Error type: rule
+File tests/input/error/error_13.txt not well formated.
