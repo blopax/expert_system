@@ -1,8 +1,7 @@
 import unittest
 import os
 
-import expert_system
-
+from srcs import expert_system
 
 class TestExpertSystem(unittest.TestCase):
     def test_and(self):
