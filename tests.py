@@ -3,8 +3,7 @@ import os
 import sys
 
 # import expert_system
-from old.parser import Parser
-
+from parser import Parser
 
 class ListStream:
     def __init__(self):
