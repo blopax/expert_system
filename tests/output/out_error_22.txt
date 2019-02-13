@@ -1,2 +1,2 @@
-Error type: line is not a rule, fact, queri, comment, or empty line
-File tests/input/error/error_22.txt not well formated.
+Rule syntax error: unauthorized character: {'/'}
+in rule: '/=>C'

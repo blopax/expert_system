@@ -1,0 +1,2 @@
+Rule syntax error in rule 'A+)B+C(=>D'
+at symbol position 1: '+'

@@ -1,1 +1,0 @@
-File tests/input/error/error_0.py not well formated. Please give .txt files only.

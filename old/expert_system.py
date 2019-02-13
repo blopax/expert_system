@@ -2,8 +2,9 @@ import sys
 import os
 
 
+
 class File:
-    
+
     def __init__(self, file_name):
         with open(file_name, "r") as opened_file:
             read_file = opened_file.read()
@@ -87,7 +88,7 @@ class File:
                 print ("line : " + line + "\t\tError format: two adjacent chars: " + line[j])
                 return False
             if line[j].isupper() == False and self.is_logical(line[j], line, j) == False and line[j] != ' ' and line[j] != '\t':
-                print ("line : " + line + "\t\tError format: fact character unvalid: " + line[j])
+                print("line : " + line + "\t\tError format: fact character unvalid: " + line[j])
                 return False
             j += 1
         return True
@@ -352,7 +353,7 @@ class File:
                     print ("Error type: queri")
                     return False
             elif self.check_if_comment(self.lines[i], i) == False:
-                    print ("Error type: line is not a rule, fact, queri, comment, or empty line")
+                    print("Error type: line is not a rule, fact, queri, comment, or empty line")
                     return False
             i += 1
         return True
@@ -1043,6 +1044,7 @@ def treat_entry(arg):
     else:
         return_str = "File " + arg + " not found"
     return return_str
+
 
 def main(argv):
     i = 0

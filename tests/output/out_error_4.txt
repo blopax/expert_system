@@ -1,3 +1,0 @@
-Error format: No rules before facts
-Error type: fact
-File tests/input/error/error_4.txt not well formated.

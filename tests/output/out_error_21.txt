@@ -1,3 +1,0 @@
-B is true.
-C is true.
-A is true.

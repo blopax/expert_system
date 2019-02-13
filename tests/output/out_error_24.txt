@@ -1,3 +1,2 @@
-line : =A?              Error format: fact line unvalid char at : ?
-Error type: fact
-File tests/input/error/error_24.txt not well formated.
+Some facts are not allowed in '=A?':
+{'?'}
