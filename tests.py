@@ -5,6 +5,7 @@ import sys
 # import expert_system
 from parser import Parser
 
+
 class ListStream:
     def __init__(self):
         self.data = []

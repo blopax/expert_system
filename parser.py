@@ -194,7 +194,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(e)
 
-# NPI ajouter aux rules
-# NPI en 2 parties ? (en partant de la fin <=> s il y en a un ou => sinon
 # rq ac parenthese : que se passe-t-il si ((A + B) <=> C)
 # rq : parse devrait il retourner un dico plutot que 3 listes ?

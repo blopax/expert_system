@@ -2,7 +2,7 @@ import sys
 import os
 
 from parser import Parser
-from graph import Graph
+from node import Graph
 from solver import Solver
 
 class File:
