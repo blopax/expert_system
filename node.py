@@ -140,7 +140,6 @@ class Node:
                 child.flatten_and_or('|')
 
 
-
 if __name__ == '__main__':
     #     try:
     #         if len(sys.argv) != 2:

@@ -1,11 +1,11 @@
 import sys
 
 import parser
-import node
+# import node
 import node_utils
 import solver
 import utils
-import graph
+# import graph
 
 
 class Fact:
@@ -24,7 +24,6 @@ class Clause:
         self.positive_facts = set()
         self.negative_facts = set()
         self.is_literal = False
-
 
         # ajouter if clause is literal (id est only one positive fact exclusive or negative fact
         # remarque is on a clause A | B savoir que B est vrai ne leve pas ambiguite sur A par contre savoir non B oui
@@ -49,10 +48,10 @@ class Rule:
         print(self.premise_content, self.conclusion_content, self.fact_in_premise, self.fact_in_conclusion)
 
     def fill_premise_node(self):
-        self.premise_node = node.Node(list_input=self.premise_content)
+        self.premise_node = node_utils.Node(list_input=self.premise_content)
 
     def fill_conclusion_clauses(self):
-        conclusion_node = node.Node(list_input=self.conclusion_content)
+        conclusion_node = node_utils.Node(list_input=self.conclusion_content)
         conclusion_node.transform_graph_and_or(conclusion_node)
         conclusion_node.transform_graph_cnf(conclusion_node)
         conclusion_node.flatten_graph_cnf()
@@ -66,9 +65,9 @@ class Rule:
 
 class Graph:
     def __init__(self, rules_lst, facts_lst, queries_lst):
-        self.facts_set = set()
-        self.rules_set = set()
-        self.inferred_clauses = set()
+        self.facts_set = set()  # Facts
+        self.rules_set = set()  # Rules
+        self.inferred_clauses = set()  # ??
 
         for rule_content in rules_lst:
             symbol, index = node_utils.find_symbol_to_treat(rule_content)
@@ -122,12 +121,12 @@ if __name__ == '__main__':
             raise Exception(utils.INPUT_ERROR)
         file = sys.argv[1]
         parse = parser.Parser(file)
-        rules_lst, facts_lst, queries_lst = parse.parse_file()
-        G = graph.Graph(rules_lst, facts_lst, queries_lst)
+        rules_list, facts_list, queries_list = parse.parse_file()
+        G = Graph(rules_list, facts_list, queries_list)
 
-        print(G.rules_set)
-        print(G.facts_set)
-        print(G.inferred_clauses)
+        # print(G.rules_set)
+        # print(G.facts_set)
+        # print(G.inferred_clauses)
 
     except Exception as e:
         print(e)

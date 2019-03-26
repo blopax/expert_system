@@ -114,6 +114,33 @@ def resolution_algo(knowledge_base, query):
 # enlever si on un des elts vrais en gros si set inclu dans un autre pr pos ET neg sert pour les 2
 
 
+# query as a string
+def backward_inference_motor(graph, query):
+    if initial_check(graph, query):
+        return initial_check(graph, query)
+    look_premises_of = [query]
+    infered_clauses = create_initial_infered_clauses(graph) # clauses that are True initially initial facts as clauses, later every time a fact becomes True or clauses with or
+    while True:
+        if check_fixed_point(): # look_premises_of didn't grow or query is True
+            return appropriate_value
+
+        for fact in look_premises_of:
+
+
+
+
+def initial_check(graph, query):
+    query_fact = graph.get_fact(query)
+    if query_fact.value is True:
+        return True
+    if query not in graph.fact_in_conclusion:
+        return False
+    return None
+
+
+
+
+
 if __name__ == '__main__':
     try:
         if len(sys.argv) != 2:
@@ -126,18 +153,20 @@ if __name__ == '__main__':
             list_input = list_input + ['('] + x + [')']
             if i != len(rules_lst) - 1:
                 list_input += ['+']
-        rule = ['A', '=>', 'B', '<=>', '!', '(', '!', '!', 'C', '+', '!', '!', 'D', ')', '+', 'A']
+        # rule = ['A', '=>', 'B', '<=>', '!', '(', '!', '!', 'C', '+', '!', '!', 'D', ')', '+', 'A']
+        rule = ['(', 'A', '=>', 'C', ')', '+', '(', 'C', '=>', 'B', ')', '+', 'A']
+        # rule = ['(', 'A', '=>', 'C', ')' '+', '(', 'C', '=>', 'B', ')', '+', 'A'] pb ne voit pas manque , entre ) et +
         root = node_utils.Node(list_input=rule)
         root.transform_graph_and_or(root)
         root.transform_graph_cnf(root)
         node_utils.show_graph(root)
         root.flatten_graph_cnf()
-        node_utils.show_graph(root)
-        # cl_list = add_clause(root)
-        # print(cl_list)
-        # print(resolution(cl_list[0], cl_list[1]))
+        # node_utils.show_graph(root)
+        cl_list = add_clause(root)
+        print(cl_list)
+        print(resolution(cl_list[0], cl_list[1]))
         # print("bob")
-        # print(resolution_algo(cl_list, 'B'))
+        print(resolution_algo(cl_list, 'B'))
     except Exception as e:
         print(e)
 

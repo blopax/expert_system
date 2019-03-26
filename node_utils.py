@@ -1,5 +1,5 @@
 import parser
-# rom node import Node
+from node import Node
 
 
 def find_symbol_to_treat(list_input):
