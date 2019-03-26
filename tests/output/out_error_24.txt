@@ -1,2 +1,2 @@
 Some facts are not allowed in '=A?':
-set(['?'])
+{'?'}
