@@ -85,14 +85,18 @@ class Node:
         if position == 0:
             node_utils.update_depth_node(child1, 1)
             new_child0 = Node(content='|', depth=node.depth + 1, children=[child0.children[0], child1])
-            new_child1 = Node(content='|', depth=node.depth + 1, children=[copy.deepcopy(child0.children[1]), copy.deepcopy(child1)])
+            new_child1 = Node(content='|', depth=node.depth + 1,
+                              children=[copy.deepcopy(child0.children[1]), copy.deepcopy(child1)])
         else:
             node_utils.update_depth_node(child0, 1)
-            new_child0 = Node(content='|', depth=node.depth + 1, children=[child0, child1.children[0]])
-            new_child1 = Node(content='|', depth=node.depth + 1, children=[copy.deepcopy(child0), copy.deepcopy(child1.children[1])])
+            new_child0 = Node(content='|', depth=node.depth + 1,
+                              children=[child0, child1.children[0]])
+            new_child1 = Node(content='|', depth=node.depth + 1,
+                              children=[copy.deepcopy(child0), copy.deepcopy(child1.children[1])])
         node.children = [new_child0, new_child1]
 
-    def node_check_cnf(self, node):
+    @staticmethod
+    def node_check_cnf(node):
         check = True
         for child in node.children:
             if node.content == '|' and child.content == '+':
@@ -152,8 +156,10 @@ if __name__ == '__main__':
     #     except Exception as e:
     #         print(e)
 
-    rule = ['A', '=>', 'B', '<=>', '!', '(', '!', '!', 'C', '+', '!', '!', 'D', ')', '<=>', '(', 'A','|','B',')','+','C',')','=>','C','|','D']
-    # rule = ['(', '(', '(', 'A', '|', '(', '!', 'C', '|', '!', 'D', ')', ')', '+', '(', 'A', '|', 'A', ')', ')', '+', 'A', ')', '+', 'B']
+    rule = ['A', '=>', 'B', '<=>', '!', '(', '!', '!', 'C', '+', '!', '!', 'D', ')',
+            '<=>', '(', 'A', '|', 'B', ')', '+', 'C', ')', '=>', 'C', '|', 'D']
+    # rule = ['(', '(', '(', 'A', '|', '(', '!', 'C', '|', '!', 'D', ')', ')',
+    # '+', '(', 'A', '|', 'A', ')', ')', '+', 'A', ')', '+', 'B']
 
     root = Node(list_input=rule)
     node_utils.show_graph(root)

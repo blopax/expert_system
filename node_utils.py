@@ -103,8 +103,8 @@ def show_graph(node, vertical_lines=None):
                                                children=node.children, depth=node.depth)
         show_graph(child, vertical_lines)
 
+# changer nom en show node_tree
 
-#changer nom en show node_tree
 
 def copy_node(node):  # replace par deep copy ?
     node_copy = Node()
@@ -129,6 +129,7 @@ def update_depth_node(node, depth_delta):
     node.depth += depth_delta
     for item in node.children:
         update_depth_node(item, depth_delta)
+
 
 def transform_iff(node):
     """

@@ -86,7 +86,7 @@ class Rule:
         self.premise_clauses = self.fill_clauses_from_content(self.premise_content)
         self.conclusion_clauses = self.fill_clauses_from_content(self.conclusion_content, confirmed=True)
         self.used_rule = False
-        self.clauses_in_premise_all_confirmed = False # a voir
+        self.clauses_in_premise_all_confirmed = False  # a voir
         self.triggered = -1
 
     @staticmethod
@@ -154,7 +154,7 @@ class Graph:
         confirmed_facts = set()
         for fact in self.facts_set:
             if fact.confirmed is True:
-               confirmed_facts.add(fact.content)
+                confirmed_facts.add(fact.content)
         return confirmed_facts
 
     # initialiser inferred_clauses ac facts qui sont true ?
