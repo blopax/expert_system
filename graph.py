@@ -20,16 +20,60 @@ class Fact:
 
 
 class Clause:
-    def __init__(self):
+    def __init__(self, positive_facts=None, negative_facts=None, node=None, confirmed=False):
         self.positive_facts = set()
         self.negative_facts = set()
-        self.is_literal = False
+        self.confirmed = confirmed  # permet de voir si confirme ou pas
+        self.value = False  # permet de voir si confirme ou pas
 
-        # ajouter if clause is literal (id est only one positive fact exclusive or negative fact
+        if positive_facts:
+            self.positive_facts = positive_facts
+        if negative_facts:
+            self.negative_facts = negative_facts
+
+        if node:
+            self.make_clause(node)
+        self.is_literal = (len(self.positive_facts) + len(self.negative_facts) == 1)
+
+    def update_clause_attributes(self, confirmed_clauses):
+        if self.confirmed is True:
+            return
+        facts_of_clause = self.positive_facts | self.negative_facts
+        for confirmed_clause in confirmed_clauses:
+            if (confirmed_clause.positive_facts.issubset(self.positive_facts)
+                    and confirmed_clause.negative_facts.issubset(self.negative_facts)):
+                self.value = True
+                self.confirmed = True
+                break
+            if (confirmed_clause.is_literal is True
+                    and confirmed_clause.positive_facts.issubset(self.negative_facts)
+                    and confirmed_clause.negative_facts.issubset(self.positive_facts)):
+                facts_of_clause.remove(confirmed_clause.positive_facts | confirmed_clause.negative_facts)
+        if len(facts_of_clause) == 0:
+            self.value = False
+            self.confirmed = True
+
+    def add_literal_to_clause(self, node):
+        if node.content in parser.ALLOWED_FACTS:
+            self.positive_facts |= {node.content}
+        elif node.content == '!':
+            self.negative_facts |= {node.children[0].content}
+
+    def make_clause(self, node):
+        node_utils.show_graph(node)
+        if node.content in ['!'] + parser.ALLOWED_FACTS:
+            self.add_literal_to_clause(node)
+        if node.content == '|':
+            for child in node.children:
+                self.add_literal_to_clause(child)
+
+    def check_horn_clauses(self):
+        if len(self.positive_facts) > 1:
+            return False
+        return True
+
         # remarque is on a clause A | B savoir que B est vrai ne leve pas ambiguite sur A par contre savoir non B oui
-
     # creer methode qui transforme node en set de clauses (pas ds cette classe)
-    # dans set on utilise les facts ou les lettre ? "A, B...") --> si graphe get_fact peut etre lettres plus leger ?
 
 
 class Rule:
@@ -41,26 +85,26 @@ class Rule:
             parser.ALLOWED_FACTS)  # idem (pas besoin des facts on se sert de fonction get fact
 
         # fire below only if in backwards inference it is used and used_rule False
-        self.premise_node = None  # Rule as a Node flatten
-        self.conclusion_clauses = set()  # set of clauses
+        self.premise_clauses = self.fill_clauses_from_content(self.premise_content)
+        self.conclusion_clauses = self.fill_clauses_from_content(self.conclusion_content, confirmed=True)
         self.used_rule = False
+        self.clauses_in_premise_all_confirmed = False # a voir
 
-        print(self.premise_content, self.conclusion_content, self.fact_in_premise, self.fact_in_conclusion)
+    @staticmethod
+    def fill_clauses_from_content(content, confirmed=False):
+        node = node_utils.Node(list_input=content)
+        node.transform_graph_and_or(node)
+        node.transform_graph_cnf(node)
+        node.flatten_graph_cnf()
+        return solver.add_clause(node, confirmed=confirmed)
 
-    def fill_premise_node(self):
-        self.premise_node = node_utils.Node(list_input=self.premise_content)
+    # def fill_conclusion_clauses(self):
+    #     conclusion_node = node_utils.Node(list_input=self.conclusion_content)
+    #     conclusion_node.transform_graph_and_or(conclusion_node)
+    #     conclusion_node.transform_graph_cnf(conclusion_node)
+    #     conclusion_node.flatten_graph_cnf()
+    #     self.conclusion_clauses = solver.add_clause(conclusion_node)
 
-    def fill_conclusion_clauses(self):
-        conclusion_node = node_utils.Node(list_input=self.conclusion_content)
-        conclusion_node.transform_graph_and_or(conclusion_node)
-        conclusion_node.transform_graph_cnf(conclusion_node)
-        conclusion_node.flatten_graph_cnf()
-        # A changer en set directement dans solver ?
-        self.conclusion_clauses = solver.add_clause(conclusion_node)
-
-        # if query or useful fact in fact_in_conclusion fire fill rule that fills premise_node, and
-        # conclusion_clause_set --> dans autre classe
-        # methode pour evaluer node avec set de facts (resolution clause avec inferred clauses)
 
 
 class Graph:
@@ -80,6 +124,10 @@ class Graph:
             else:
                 pass
                 # mettre message erreur pour regler si pas d implication ??
+
+        self.facts_in_rules_conclusions = set()
+        for rule in self.rules_set:
+            self.facts_in_rules_conclusions.update(rule.fact_in_conclusion)
 
         fact_content_set = set()
         for rule in self.rules_set:
