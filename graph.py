@@ -72,7 +72,6 @@ class Clause:
         return True
 
         # remarque is on a clause A | B savoir que B est vrai ne leve pas ambiguite sur A par contre savoir non B oui
-    # creer methode qui transforme node en set de clauses (pas ds cette classe)
 
 
 class Rule:
@@ -88,6 +87,7 @@ class Rule:
         self.conclusion_clauses = self.fill_clauses_from_content(self.conclusion_content, confirmed=True)
         self.used_rule = False
         self.clauses_in_premise_all_confirmed = False # a voir
+        self.triggered = -1
 
     @staticmethod
     def fill_clauses_from_content(content, confirmed=False):
@@ -96,14 +96,6 @@ class Rule:
         node.transform_graph_cnf(node)
         node.flatten_graph_cnf()
         return solver.add_clause(node, confirmed=confirmed)
-
-    # def fill_conclusion_clauses(self):
-    #     conclusion_node = node_utils.Node(list_input=self.conclusion_content)
-    #     conclusion_node.transform_graph_and_or(conclusion_node)
-    #     conclusion_node.transform_graph_cnf(conclusion_node)
-    #     conclusion_node.flatten_graph_cnf()
-    #     self.conclusion_clauses = solver.add_clause(conclusion_node)
-
 
 
 class Graph:
@@ -157,6 +149,13 @@ class Graph:
         for fact_not_in_conclusions in facts_not_in_conclusions:
             fact = self.get_fact(fact_not_in_conclusions)
             fact.confirmed = True
+
+    def get_confirmed_facts(self):
+        confirmed_facts = set()
+        for fact in self.facts_set:
+            if fact.confirmed is True:
+               confirmed_facts.add(fact.content)
+        return confirmed_facts
 
     # initialiser inferred_clauses ac facts qui sont true ?
 

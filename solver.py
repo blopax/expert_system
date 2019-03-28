@@ -4,6 +4,7 @@ import sys
 import node_utils
 import utils
 import graph
+import copy
 
 # 
 # def add_literal_to_clause(node, clause):
@@ -128,37 +129,47 @@ def resolution_algo(knowledge_base, query):
 
 # query as a string
 def backward_inference_motor(graph, queries):
-    # queries as a set
     all_queries_confirmed = check_queries_confirmed(graph, queries, True)
     facts_of_interests = queries # set of facts_content
     confirmed_clauses = initial_confirmed_clauses(graph)  # set of Clauses
+    confirmed_facts = graph.get_confirmed_facts()
     _, queue = add_rules_to_queue(graph, [], facts_of_interests) # list of rules
     queue.sort(key=lambda rule_item : rule_triggered(rule_item, confirmed_clauses), reverse=True)
+    rotate = 0
 
-    while queue and facts_of_interests and not all_queries_confirmed:
+    count = 0
+    while queue and not all_queries_confirmed:
+        count +=1
+        if count % 100 == 0:
+            print("bob")
+        queue_length_before = len(queue)
         rule = queue.pop(0)
-        new_queue, facts_of_interests, confirmed_clauses = apply_rule(graph, rule,
+        queue, facts_of_interests, confirmed_clauses = apply_rule(graph, rule,
                                                                   queue, facts_of_interests, confirmed_clauses)
-        if queue == new_queue:
-            if facts_of_interests:
-                fact_content = facts_of_interests.pop()
-                fact = graph.get_fact(fact_content)
-                fact.confirmed = True
-        queue = new_queue
+        if len(queue) == queue_length_before:
+            rotate += 1
+        else:
+            rotate = 0
 
+        if rotate == len(queue) and facts_of_interests:
+            confirmed_facts = graph.get_confirmed_facts()
+            facts_to_confirm = facts_of_interests - confirmed_facts
+            for fact_content in facts_to_confirm: break
+            fact = graph.get_fact(fact_content)
+            fact.confirmed = True
+            queue.sort(key=lambda rule_item : rule_triggered(rule_item, confirmed_clauses), reverse=True)
+            rotate = 0
+
+        confirmed_facts = graph.get_confirmed_facts()
         all_queries_confirmed = check_queries_confirmed(graph, queries, True)
-    # faire un sort sur confirmed clause pour voir si literal,
-    # pour toutes les confirmed clauses updater si besoin le fait associe
 
     # return graph
-
-    # un flag supplementaire dans while ac facts_of_interests all confirmed
 
 
 def apply_rule(graph, rule, queue, facts_of_interests, confirmed_clauses):
     trigger = rule_triggered(rule, confirmed_clauses)
     if trigger == 1:  # 'rule_body_confirmed_true'
-        confirmed_clauses.update(rule.conclusion_clauses)
+        confirmed_clauses.update(copy.deepcopy(rule.conclusion_clauses))
         update_facts(graph, rule.conclusion_clauses)
         queue.sort(key= lambda rule_item : rule_triggered(rule_item, confirmed_clauses))
     elif trigger == 0:  # 'rule_body_confirmed_false':
@@ -169,6 +180,8 @@ def apply_rule(graph, rule, queue, facts_of_interests, confirmed_clauses):
         queue.append(rule)
         if add_rules_to_queue(graph, queue, new_facts_of_interests)[0] >= 1:
             queue.sort(key=lambda rule_item: rule_triggered(rule_item, confirmed_clauses), reverse=True)
+    confirmed_facts = graph.get_confirmed_facts()
+    facts_of_interests = facts_of_interests - confirmed_facts # a reflechir car bloque la boucle
     return queue, facts_of_interests, confirmed_clauses
 
 # pb = il faut un flag supplementaire pour dire quand on peut utiliser le trigger-1 en confirmant plus de faits
@@ -185,6 +198,7 @@ def rule_triggered(rule, confirmed_clauses):
         elif clause.confirmed is False:
             trigger = -1
             break
+    rule.triggered = trigger
     return trigger
 
 
@@ -204,7 +218,7 @@ def add_rules_to_queue(graph, queue, new_facts_of_interests):
     nb_rules_added = 0
     for fact_content in new_facts_of_interests:
         for rule in graph.rules_set:
-            if fact_content in rule.fact_in_conclusion and rule not in queue:
+            if fact_content in rule.fact_in_conclusion and rule.triggered == -1 and rule not in queue:
                 queue.append(rule)
                 nb_rules_added += 1
     return nb_rules_added, queue
@@ -214,17 +228,20 @@ def update_facts(graph, new_confirmed_clauses):
     for clause in new_confirmed_clauses:
         if clause.is_literal is True:
             if len(clause.positive_facts) == 1:
-                fact_content = clause.positive_facts.pop()
+                for fact_content in clause.positive_facts: break
                 fact = graph.get_fact(fact_content)
                 if fact.confirmed is False:
                     fact.value = True
                     fact.confirmed = True
-                #changer c la ou on voit contradiction
+                elif fact.value is not True:
+                    print("Contradiction on fact {}".format(fact.content))
             else:
-                fact_content = clause.negative_facts.pop()
+                for fact_content in clause.negative_facts: break
                 fact = graph.get_fact(fact_content)
                 if fact.confirmed is False:
                     fact.confirmed = True
+                elif fact.value is True:
+                    print("Contradiction on fact {}".format(fact.content))
 
 
 def initial_confirmed_clauses(grph):
@@ -263,21 +280,10 @@ if __name__ == '__main__':
         if len(sys.argv) != 2:
             raise Exception(utils.INPUT_ERROR)
         file = sys.argv[1]
-        parse = parser.Parser(file)
-        rules_lst, facts_lst, queries_lst = parse.parse_file()
-        list_input = []
 
+        string = treat_entry(file)
+        print(string, end='')
 
-        ###############
-        # Backward_chaining
-        G = graph.Graph(rules_lst, facts_lst, queries_lst)
-        backward_inference_motor(G, set(queries_lst))
-
-        for query in queries_lst:
-            fact = G.get_fact(query)
-            print("{} is {}.".format(query, str(fact.value).lower()))
-
-        ###############
 
 
 

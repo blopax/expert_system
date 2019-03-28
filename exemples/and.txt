@@ -1,6 +1,6 @@
 A + B => C
 C => B
 
-=AC
+=C
 
-?BC
+?ABC

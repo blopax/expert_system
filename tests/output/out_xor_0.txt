@@ -1,3 +1,3 @@
 A is true.
 B is true.
-C is unknown.
+C is false.

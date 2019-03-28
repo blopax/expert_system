@@ -1,3 +1,2 @@
-Error format: No newline before facts
-Error type: fact
-File tests/input/imply/imply_0.txt not well formated.
+Rule syntax error in rule '=>C'
+at symbol position 0: '=>'
