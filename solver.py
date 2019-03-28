@@ -135,10 +135,17 @@ def backward_inference_motor(graph, queries):
     _, queue = add_rules_to_queue(graph, [], facts_of_interests) # list of rules
     queue.sort(key=lambda rule_item : rule_triggered(rule_item, confirmed_clauses), reverse=True)
 
-    while queue and not all_queries_confirmed:
+    while queue and facts_of_interests and not all_queries_confirmed:
         rule = queue.pop(0)
-        queue, facts_of_interests, confirmed_clauses = apply_rule(graph, rule,
+        new_queue, facts_of_interests, confirmed_clauses = apply_rule(graph, rule,
                                                                   queue, facts_of_interests, confirmed_clauses)
+        if queue == new_queue:
+            if facts_of_interests:
+                fact_content = facts_of_interests.pop()
+                fact = graph.get_fact(fact_content)
+                fact.confirmed = True
+        queue = new_queue
+
         all_queries_confirmed = check_queries_confirmed(graph, queries, True)
     # faire un sort sur confirmed clause pour voir si literal,
     # pour toutes les confirmed clauses updater si besoin le fait associe
@@ -161,7 +168,7 @@ def apply_rule(graph, rule, queue, facts_of_interests, confirmed_clauses):
         facts_of_interests.update(new_facts_of_interests)
         queue.append(rule)
         if add_rules_to_queue(graph, queue, new_facts_of_interests)[0] >= 1:
-            queue.sort(key=lambda rule_item : rule_triggered(rule_item, confirmed_clauses), reverse=True)
+            queue.sort(key=lambda rule_item: rule_triggered(rule_item, confirmed_clauses), reverse=True)
     return queue, facts_of_interests, confirmed_clauses
 
 # pb = il faut un flag supplementaire pour dire quand on peut utiliser le trigger-1 en confirmant plus de faits

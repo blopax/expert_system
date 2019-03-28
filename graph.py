@@ -48,7 +48,7 @@ class Clause:
             if (confirmed_clause.is_literal is True
                     and confirmed_clause.positive_facts.issubset(self.negative_facts)
                     and confirmed_clause.negative_facts.issubset(self.positive_facts)):
-                facts_of_clause.remove(confirmed_clause.positive_facts | confirmed_clause.negative_facts)
+                facts_of_clause -= confirmed_clause.positive_facts | confirmed_clause.negative_facts
         if len(facts_of_clause) == 0:
             self.value = False
             self.confirmed = True
