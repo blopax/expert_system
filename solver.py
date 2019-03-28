@@ -239,6 +239,25 @@ def initial_confirmed_clauses(grph):
     return confirmed_clauses
 
 
+def treat_entry(file):
+    parse = parser.Parser(file)
+    rules_lst, facts_lst, queries_lst = parse.parse_file()
+    list_input = []
+
+    ###############
+    # Backward_chaining
+    G = graph.Graph(rules_lst, facts_lst, queries_lst)
+    backward_inference_motor(G, set(queries_lst))
+
+    string = ""
+    for query in queries_lst:
+        fact = G.get_fact(query)
+        string += "{} is {}.\n".format(query, str(fact.value).lower())
+    return string
+
+    ###############
+
+
 if __name__ == '__main__':
     try:
         if len(sys.argv) != 2:
@@ -256,7 +275,7 @@ if __name__ == '__main__':
 
         for query in queries_lst:
             fact = G.get_fact(query)
-            print("Query {} is {}".format(query, fact.value))
+            print("{} is {}.".format(query, str(fact.value).lower()))
 
         ###############
 

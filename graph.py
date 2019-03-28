@@ -60,7 +60,6 @@ class Clause:
             self.negative_facts |= {node.children[0].content}
 
     def make_clause(self, node):
-        node_utils.show_graph(node)
         if node.content in ['!'] + parser.ALLOWED_FACTS:
             self.add_literal_to_clause(node)
         if node.content == '|':
@@ -115,7 +114,6 @@ class Graph:
 
         for rule_content in rules_lst:
             symbol, index = node_utils.find_symbol_to_treat(rule_content)
-            print(rule_content, index, symbol)
             if symbol == "=>":
                 self.rules_set.add(Rule(rule_content[:index], rule_content[index + 1:]))
             elif symbol == "<=>":
