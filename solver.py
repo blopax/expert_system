@@ -92,18 +92,18 @@ def resolution_algo(knowledge_base, query):
 
 def backward_inference_motor(graph, queries):
     all_queries_confirmed = check_queries_confirmed(graph, queries, True)
-    facts_of_interests = queries  # set of facts_content
+    facts_of_interests = copy.deepcopy(queries)  # set of facts_content
     queue = add_rules_to_queue(graph, None, facts_of_interests)  # list of rules
     queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
     rotate = 0
 
-    while queue and not all_queries_confirmed and not graph.contradiction:
+    while queue and not all_queries_confirmed and not graph.contradiction and rotate <= len(queue):
         rule = queue.pop(0)
         queue, facts_of_interests = apply_rule(graph, rule, queue, facts_of_interests)
 
         if rule.triggered == -1:
             rotate += 1
-            rotate = check_queue_rotation(graph, queue, facts_of_interests, rotate)
+            graph, rotate, facts_of_interests = check_queue_rotation(graph, queue, facts_of_interests, rotate, queries)
         else:
             rotate = 0
         all_queries_confirmed = check_queries_confirmed(graph, queries, True)
@@ -113,33 +113,28 @@ def backward_inference_motor(graph, queries):
         queue, facts_of_interests = apply_rule(graph, rule, queue, facts_of_interests)
 
 
-def check_queue_rotation(graph, queue, facts_of_interests, rotate):
+def check_queue_rotation(graph, queue, facts_of_interests, rotate, queries):
     # d un fait bien le choisir pour changer les triggers
     if rotate == len(queue) and facts_of_interests:
         confirmed_facts = graph.get_confirmed_facts()
-        facts_to_confirm = facts_of_interests - confirmed_facts
-        # faire un search et possibilites ?
-        fact_content = None
-        rules_triggered_by_fact = -1
-        for fact_item_content in facts_to_confirm:
-            sum = 0
-            fact_item = graph.get_fact(fact_item_content)
-            fact_item.confirmed = True
-            # fake_confirmed_clauses = initial_confirmed_clauses(graph)
-            not_triggered_rule = [rule for rule in graph.rules_set if rule.triggered == -1]
-            for rule in not_triggered_rule:
-                if rule_triggered(rule, graph.confirmed_clauses, False) == 1:
-                    sum += 1
-            if sum > rules_triggered_by_fact:
-                rules_triggered_by_fact = sum
-                fact_content = fact_item_content
-                fact_item.confirmed = False
-        fact = graph.get_fact(fact_content)
-        fact.confirmed = True
-        graph.update_confirmed_clauses()
-        queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
-        rotate = 0
-    return rotate
+        facts_of_interests = facts_of_interests - confirmed_facts # - queries
+
+        fact_item_content = None
+
+        for fact_item_content in facts_of_interests:
+            new_graph = copy.deepcopy(graph)
+            new_graph.get_fact(fact_item_content).confirmed = True
+            new_graph.update_confirmed_clauses()
+            backward_inference_motor(new_graph, queries)
+            if not new_graph.contradiction:
+                rotate = 0
+                break
+        facts_of_interests.remove(fact_item_content)
+        if fact_item_content:
+            graph = new_graph
+            graph.update_confirmed_clauses()
+            queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
+    return graph, rotate, facts_of_interests
 
         # confirmed_facts = graph.get_confirmed_facts()
 

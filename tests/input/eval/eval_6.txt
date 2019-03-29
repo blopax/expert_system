@@ -5,3 +5,5 @@ B => C
 =
 
 ?A
+
+# dans rotate pk pas commencer par not queries
