@@ -106,8 +106,9 @@ class Parser:
                 rule = list(rule_line)
                 rule = ["<=>" if x == "~" else x for x in rule]
                 rule = ["=>" if x == "-" else x for x in rule]
-                self.check_error_rule(rule)
-                rules.append(rule)
+                if rule:
+                    self.check_error_rule(rule)
+                    rules.append(rule)
             return rules
         except Exception:
             raise
@@ -191,8 +192,9 @@ if __name__ == "__main__":
         parse = Parser(file)
         rules_lst, facts_lst, queries_lst = parse.parse_file()
         print(rules_lst, "\n", facts_lst, "\n", queries_lst)
-    except Exception as e:
-        print(e)
+    except OSError: #Exception as e:
+        pass
+        #print(e)
 
 # rq ac parenthese : que se passe-t-il si ((A + B) <=> C)
 # rq : parse devrait il retourner un dico plutot que 3 listes ?

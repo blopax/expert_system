@@ -49,12 +49,13 @@ class Node:
 
         # a verifier
 
-    def transform_graph_and_or(self, node):
+    def transform_graph_and_or_step(self, node):
         """
         Take a node and transform node and all depending nodes into a tree with only '+', '|' and '!'
         :param node:
         :return:
         """
+        not_finished = False
         if node.content == '<=>':
             node_utils.transform_iff(node)
         elif node.content == '=>':
@@ -68,8 +69,14 @@ class Node:
                 node_utils.update_depth_node(tmp, -1)
                 node_utils.update_node(node, content=child.content, depth=tmp.depth, children=tmp.children)
                 del tmp
+                not_finished = True
         for item in node.children:
             self.transform_graph_and_or(item)
+        return not_finished
+
+    def transform_graph_and_or(self, node):
+        while self.transform_graph_and_or_step(node):
+            pass
 
     @staticmethod
     def develop_and_or(node, position):
@@ -160,6 +167,7 @@ if __name__ == '__main__':
             '<=>', '(', 'A', '|', 'B', ')', '+', 'C', ')', '=>', 'C', '|', 'D']
     # rule = ['(', '(', '(', 'A', '|', '(', '!', 'C', '|', '!', 'D', ')', ')',
     # '+', '(', 'A', '|', 'A', ')', ')', '+', 'A', ')', '+', 'B']
+    rule = ['!', 'A', '|', '!', '!', '!', '!', '!', '!', 'B', '+', '!', '!', '!', '!', '!', 'D']
 
     root = Node(list_input=rule)
     node_utils.show_graph(root)

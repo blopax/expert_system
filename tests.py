@@ -62,10 +62,18 @@ class TestExpertSystem(unittest.TestCase):
         path = 'tests/input/imply'
         file_list = os.listdir(path)
         for filename in file_list:
-            with open('tests/output/out_{}'.format(filename), 'r') as fd:
-                out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            if filename in ['imply_0.txt', 'imply_1.txt', 'imply_2.txt']:
+                with open('tests/output/out_{}'.format(filename), 'r') as fd:
+                    expected_out = fd.read()
+                with ListStream() as print_list:
+                    Parser('{}/{}'.format(path, filename)).parse_file()
+                    out = "".join(print_list.data)
+                self.assertEqual(out, expected_out)
+            else:
+                with open('tests/output/out_{}'.format(filename), 'r') as fd:
+                    out = fd.read()
+                self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_not(self):
         path = 'tests/input/not'
@@ -100,7 +108,7 @@ class TestExpertSystem(unittest.TestCase):
         for filename in file_list:
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
-            print(filename)
+            # print(filename)
             self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_parsing_error(self):

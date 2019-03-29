@@ -93,63 +93,82 @@ def resolution_algo(knowledge_base, query):
 def backward_inference_motor(graph, queries):
     all_queries_confirmed = check_queries_confirmed(graph, queries, True)
     facts_of_interests = queries  # set of facts_content
-    confirmed_clauses = initial_confirmed_clauses(graph)  # set of Clauses
-    # confirmed_facts = graph.get_confirmed_facts()
-    _, queue = add_rules_to_queue(graph, [], facts_of_interests)  # list of rules
-    queue.sort(key=lambda rule_item: rule_triggered(rule_item, confirmed_clauses), reverse=True)
+    queue = add_rules_to_queue(graph, None, facts_of_interests)  # list of rules
+    queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
     rotate = 0
 
-    count = 0
-    while queue and not all_queries_confirmed:
-        count += 1
-        queue_length_before = len(queue)
+    while queue and not all_queries_confirmed and not graph.contradiction:
         rule = queue.pop(0)
-        queue, facts_of_interests, confirmed_clauses = apply_rule(graph, rule,
-                                                                  queue, facts_of_interests, confirmed_clauses)
+        queue, facts_of_interests = apply_rule(graph, rule, queue, facts_of_interests)
 
-        # mettre dans fonction separee
-        if len(queue) == queue_length_before:
+        if rule.triggered == -1:
             rotate += 1
+            rotate = check_queue_rotation(graph, queue, facts_of_interests, rotate)
         else:
             rotate = 0
+        all_queries_confirmed = check_queries_confirmed(graph, queries, True)
 
-        if rotate == len(queue) and facts_of_interests:
-            confirmed_facts = graph.get_confirmed_facts()
-            facts_to_confirm = facts_of_interests - confirmed_facts
-            fact_content = None
-            for fact_content in facts_to_confirm:
-                break
-            fact = graph.get_fact(fact_content)
-            fact.confirmed = True
-            queue.sort(key=lambda rule_item: rule_triggered(rule_item, confirmed_clauses), reverse=True)
-            rotate = 0
+    while queue and rule_triggered(queue[0], graph.confirmed_clauses, False) == 1 and not graph.contradiction:
+        rule = queue.pop(0)
+        queue, facts_of_interests = apply_rule(graph, rule, queue, facts_of_interests)
+
+
+def check_queue_rotation(graph, queue, facts_of_interests, rotate):
+    # d un fait bien le choisir pour changer les triggers
+    if rotate == len(queue) and facts_of_interests:
+        confirmed_facts = graph.get_confirmed_facts()
+        facts_to_confirm = facts_of_interests - confirmed_facts
+        # faire un search et possibilites ?
+        fact_content = None
+        rules_triggered_by_fact = -1
+        for fact_item_content in facts_to_confirm:
+            sum = 0
+            fact_item = graph.get_fact(fact_item_content)
+            fact_item.confirmed = True
+            # fake_confirmed_clauses = initial_confirmed_clauses(graph)
+            not_triggered_rule = [rule for rule in graph.rules_set if rule.triggered == -1]
+            for rule in not_triggered_rule:
+                if rule_triggered(rule, graph.confirmed_clauses, False) == 1:
+                    sum += 1
+            if sum > rules_triggered_by_fact:
+                rules_triggered_by_fact = sum
+                fact_content = fact_item_content
+                fact_item.confirmed = False
+        fact = graph.get_fact(fact_content)
+        fact.confirmed = True
+        graph.update_confirmed_clauses()
+        queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
+        rotate = 0
+    return rotate
 
         # confirmed_facts = graph.get_confirmed_facts()
-        all_queries_confirmed = check_queries_confirmed(graph, queries, True)
 
     # return graph
 
 
-def apply_rule(graph, rule, queue, facts_of_interests, confirmed_clauses):
-    trigger = rule_triggered(rule, confirmed_clauses)
+
+
+def apply_rule(graph, rule, queue, facts_of_interests):
+    trigger = rule_triggered(rule, graph.confirmed_clauses)
     if trigger == 1:  # 'rule_body_confirmed_true'
-        confirmed_clauses.update(copy.deepcopy(rule.conclusion_clauses))
+        graph.confirmed_clauses.update(copy.deepcopy(rule.conclusion_clauses))
         update_facts(graph, rule.conclusion_clauses)
-        queue.sort(key=lambda rule_item: rule_triggered(rule_item, confirmed_clauses))
+        queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses))
     elif trigger == 0:  # 'rule_body_confirmed_false':
         pass
     elif trigger == -1:  # 'rule_body_not_confirmed':
         new_facts_of_interests = rule.fact_in_premise - facts_of_interests
         facts_of_interests.update(new_facts_of_interests)
         queue.append(rule)
-        if add_rules_to_queue(graph, queue, new_facts_of_interests)[0] >= 1:
-            queue.sort(key=lambda rule_item: rule_triggered(rule_item, confirmed_clauses), reverse=True)
+        old_queue_length = len(queue)
+        if len(add_rules_to_queue(graph, queue, new_facts_of_interests)) > old_queue_length:
+            queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
     confirmed_facts = graph.get_confirmed_facts()
     facts_of_interests = facts_of_interests - confirmed_facts
-    return queue, facts_of_interests, confirmed_clauses
+    return queue, facts_of_interests
 
 
-def rule_triggered(rule, confirmed_clauses):
+def rule_triggered(rule, confirmed_clauses, change_rule=True):
     trigger = 1
     for clause in rule.premise_clauses:
         if clause.confirmed is False:
@@ -160,7 +179,8 @@ def rule_triggered(rule, confirmed_clauses):
         elif clause.confirmed is False:
             trigger = -1
             break
-    rule.triggered = trigger
+    if change_rule:
+        rule.triggered = trigger
     return trigger
 
 
@@ -177,13 +197,13 @@ def check_queries_confirmed(graph, queries, initial=False):
 
 
 def add_rules_to_queue(graph, queue, new_facts_of_interests):
-    nb_rules_added = 0
+    if queue is None:
+        queue = []
     for fact_content in new_facts_of_interests:
         for rule in graph.rules_set:
             if fact_content in rule.fact_in_conclusion and rule.triggered == -1 and rule not in queue:
                 queue.append(rule)
-                nb_rules_added += 1
-    return nb_rules_added, queue
+    return queue
 
 
 def update_facts(graph, new_confirmed_clauses):
@@ -194,32 +214,32 @@ def update_facts(graph, new_confirmed_clauses):
                 for fact_content in clause.positive_facts:
                     break
                 fact = graph.get_fact(fact_content)
-                if fact.confirmed is False:
+                if fact and fact.confirmed is False:
                     fact.value = True
                     fact.confirmed = True
-                elif fact.value is not True:
-                    print("Contradiction on fact {}".format(fact.content))
+                elif fact and fact.value is not True:
+                    graph.contradiction = fact.content
             else:
                 fact_content = None
                 for fact_content in clause.negative_facts:
                     break
                 fact = graph.get_fact(fact_content)
-                if fact.confirmed is False:
+                if fact and fact.confirmed is False:
                     fact.confirmed = True
-                elif fact.value is True:
-                    print("Contradiction on fact {}".format(fact.content))
+                elif fact and fact.value is True:
+                    graph.contradiction = fact_content
 
-
-def initial_confirmed_clauses(graph):
-    confirmed_clauses = set()
-    for fact in graph.facts_set:
-        if fact.confirmed is True:
-            if fact.value is False:
-                clause = graph_module.Clause(negative_facts=set(fact.content), confirmed=True)
-            else:
-                clause = graph_module.Clause(positive_facts=set(fact.content), confirmed=True)
-            confirmed_clauses.add(clause)
-    return confirmed_clauses
+#
+# def initial_confirmed_clauses(graph):
+#     confirmed_clauses = set()
+#     for fact in graph.facts_set:
+#         if fact.confirmed is True:
+#             if fact.value is False:
+#                 clause = graph_module.Clause(negative_facts=set(fact.content), confirmed=True)
+#             else:
+#                 clause = graph_module.Clause(positive_facts=set(fact.content), confirmed=True)
+#             confirmed_clauses.add(clause)
+#     return confirmed_clauses
 
 
 def treat_entry(filename):
@@ -231,10 +251,13 @@ def treat_entry(filename):
     g = graph_module.Graph(rules_lst, facts_lst, queries_lst)
     backward_inference_motor(g, set(queries_lst))
 
-    display_string = ""
-    for query in queries_lst:
-        fact = g.get_fact(query)
-        display_string += "{} is {}.\n".format(query, str(fact.value).lower())
+    if g.contradiction:
+        display_string = "Contradiction on fact {}.\n".format(g.contradiction)
+    else:
+        display_string = ""
+        for query in queries_lst:
+            fact = g.get_fact(query)
+            display_string += "{} is {}.\n".format(query, str(fact.value).lower())
     return display_string
 
     ###############

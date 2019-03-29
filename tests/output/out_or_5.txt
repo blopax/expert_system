@@ -1,4 +1,1 @@
-Error contradiction for query: C
-A is true.
-B is unknown.
-D is unknown.
+Contradiction on fact C.

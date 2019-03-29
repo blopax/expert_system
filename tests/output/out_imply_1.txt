@@ -1,3 +1,2 @@
-line : B =>             Error format: No proposition after implie.
-Error type: rule
-File tests/input/imply/imply_1.txt not well formated.
+Rule syntax error in rule 'B=>'
+at symbol position 1: '=>'

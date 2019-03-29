@@ -1,4 +1,1 @@
-Error contradiction for query: B
-A is true.
-C is false. # peut se discuter pour moi j'ai refuse la regle donc C reste faux pour toi vrai
-
+Contradiction on fact B.

@@ -1,3 +1,2 @@
-line : A =>=> B         Error format: To many implies.
-Error type: rule
-File tests/input/imply/imply_2.txt not well formated.
+Rule syntax error in rule 'A=>=>B'
+at symbol position 1: '=>'

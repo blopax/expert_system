@@ -95,6 +95,7 @@ class Rule:
         node.transform_graph_and_or(node)
         node.transform_graph_cnf(node)
         node.flatten_graph_cnf()
+        # node_utils.show_graph(node)
         return solver.add_clause(node, confirmed=confirmed)
 
 
@@ -102,7 +103,8 @@ class Graph:
     def __init__(self, rules_lst, facts_lst, queries_lst):
         self.facts_set = set()  # Facts
         self.rules_set = set()  # Rules
-        self.inferred_clauses = set()  # ??
+        self.confirmed_clauses = set()  # ??
+        self.contradiction = None
 
         for rule_content in rules_lst:
             symbol, index = node_utils.find_symbol_to_treat(rule_content)
@@ -129,6 +131,7 @@ class Graph:
         for content in fact_content_set:
             self.facts_set.add(Fact(content))
         self.set_initial_facts(facts_lst, fact_content_set)
+        self.update_confirmed_clauses()
 
     def get_fact(self, fact_content):
         fact = None
@@ -157,7 +160,13 @@ class Graph:
                 confirmed_facts.add(fact.content)
         return confirmed_facts
 
-    # initialiser inferred_clauses ac facts qui sont true ?
+    def update_confirmed_clauses(self):
+        for fact in {self.get_fact(fact_content) for fact_content in self.get_confirmed_facts()}:
+            if fact.value is False:
+                clause = Clause(negative_facts=set(fact.content), confirmed=True)
+            else:
+                clause = Clause(positive_facts=set(fact.content), confirmed=True)
+            self.confirmed_clauses.add(clause)
 
 
 if __name__ == '__main__':
