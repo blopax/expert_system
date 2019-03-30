@@ -1,6 +1,26 @@
 import argparse
 import solver
 import parser
+import node_utils
+import graph as graph_module
+
+
+def check_if_rules_horn_clauses(rules_lst):
+    horn_clauses_only = True
+    for rule_content in rules_lst:
+        node = node_utils.Node(list_input=rule_content)
+        node.transform_graph_and_or(node)
+        node.transform_graph_cnf(node)
+        node.flatten_graph_cnf()
+        if node.content == "+":
+            horn_clauses_only = False
+            break
+        clause = graph_module.Clause(node=node)
+        horn_clause = clause.check_horn_clauses()
+        if not horn_clause:
+            horn_clauses_only = False
+            break
+    return horn_clauses_only
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -19,13 +39,18 @@ if __name__ == '__main__':
     try:
         args=get_args()
         filename = args.filename
-        print(filename, args.interactive, args.fast)
 
         parse = parser.Parser(filename)
         rules_lst, facts_lst, queries_lst = parse.parse_file()
+
+        if args.complete and args.resolution_mode == "backward_chaining":
+            complete = check_if_rules_horn_clauses(rules_lst)
+            if not complete:
+                print("Be aware: some rules are not Horn Clauses. The backward_chaining algorithm is not complete.\n")
+
         new_facts = None
         if not args.interactive:
-            string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts)
+            string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
             print(string, end='')
         else:
             if not rules_lst and not facts_lst and not queries_lst:
@@ -35,7 +60,7 @@ if __name__ == '__main__':
             input_error = False
             while keep_going:
                 if input_error is False:
-                    string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts)
+                    string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
                     print(string, end='')
                 new_facts = input("Press 'q' to quit or change facts here (only capitalize letters no spaces):\n")
                 if new_facts == 'q':

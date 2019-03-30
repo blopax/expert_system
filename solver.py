@@ -17,12 +17,12 @@ def add_clause(node, confirmed=False):
         clauses_list.append(clause)
     return clauses_list
 
-
-def check_horn_clauses(clauses_list):
-    for clause in clauses_list:
-        if len(clause['positive_facts']) > 1:
-            return False
-    return True
+#
+# def check_horn_clauses(clauses_list):
+#     for clause in clauses_list:
+#         if len(clause['positive_facts']) > 1:
+#             return False
+#     return True
 
 
 def resolution(clause_a, clause_b):
@@ -139,7 +139,7 @@ def resolution_knowledge_base(knowledge_base):
 # enlever si on un des elts vrais en gros si set inclu dans un autre pr pos ET neg sert pour les 2
 
 
-def backward_inference_motor(graph, queries):
+def backward_inference_motor(graph, queries, fast=None):
     all_queries_confirmed = check_queries_confirmed(graph, queries, True)
     facts_of_interests = copy.deepcopy(queries)  # set of facts_content
     queue = add_rules_to_queue(graph, None, facts_of_interests)  # list of rules
@@ -157,9 +157,10 @@ def backward_inference_motor(graph, queries):
             rotate = 0
         all_queries_confirmed = check_queries_confirmed(graph, queries, True)
 
-    while queue and rule_triggered(queue[0], graph.confirmed_clauses, False) == 1 and not graph.contradiction:
-        rule = queue.pop(0)
-        queue, facts_of_interests, rotation = apply_rule(graph, rule, queue, facts_of_interests)
+    if not fast:
+        while queue and rule_triggered(queue[0], graph.confirmed_clauses, False) == 1 and not graph.contradiction:
+            rule = queue.pop(0)
+            queue, facts_of_interests, rotation = apply_rule(graph, rule, queue, facts_of_interests)
     # Add flag to check for contradictions
     return graph
 
@@ -320,12 +321,12 @@ def check_ambiguity(graph, fact):
     return resolution_algo(knowledge_base, fact)
 
 
-def solve(rules_lst, facts_lst, queries_lst, facts_input=None):
+def solve(rules_lst, facts_lst, queries_lst, facts_input=None, fast=None):
     if facts_input:
         facts_lst = facts_input
 
     g = graph_module.Graph(rules_lst, facts_lst, queries_lst)
-    g = backward_inference_motor(g, set(queries_lst))
+    g = backward_inference_motor(g, set(queries_lst), fast)
 
     if g.contradiction:
         display_string = "Contradiction on fact {}.\n".format(g.contradiction)

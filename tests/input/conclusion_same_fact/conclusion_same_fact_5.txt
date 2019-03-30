@@ -6,4 +6,3 @@ A => !B
 
 ?ABC
 
-# voir pourquoi on utilise pas non B => C + A d abord
