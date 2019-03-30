@@ -1,3 +1,1 @@
-line : ((((A + B))) => C                Error format: Parentheses format error.
-Error type: rule
-File tests/input/error/error_18.txt not well formated.
+Rule syntax error with parenthesis in rule '((((A+B)))=>C'

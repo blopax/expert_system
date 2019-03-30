@@ -124,6 +124,23 @@ class TestExpertSystem(unittest.TestCase):
                 out = "".join(print_list.data)
             self.assertEqual(out, expected_out)
 
+    def test_error(self):
+        path = 'tests/input/error'
+        file_list = os.listdir(path)
+        for filename in file_list:
+            if filename in ['error_17.txt', 'error_18.txt']:
+                with open('tests/output/out_{}'.format(filename), 'r') as fd:
+                    expected_out = fd.read()
+                with ListStream() as print_list:
+                    Parser('{}/{}'.format(path, filename)).parse_file()
+                    out = "".join(print_list.data)
+                self.assertEqual(out, expected_out)
+            else:
+                with open('tests/output/out_{}'.format(filename), 'r') as fd:
+                    out = fd.read()
+                # print(filename)
+                self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+
 
 if __name__ == "__main__":
     unittest.main()

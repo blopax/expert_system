@@ -1,1 +1,6 @@
-Contradiction on fact D.
+A is false.
+B is true.
+C is true.
+D is true.
+E is false.
+F is true.

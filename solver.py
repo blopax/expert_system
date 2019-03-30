@@ -111,21 +111,24 @@ def backward_inference_motor(graph, queries):
     while queue and rule_triggered(queue[0], graph.confirmed_clauses, False) == 1 and not graph.contradiction:
         rule = queue.pop(0)
         queue, facts_of_interests = apply_rule(graph, rule, queue, facts_of_interests)
+    return graph
 
 
 def check_queue_rotation(graph, queue, facts_of_interests, rotate, queries):
     # d un fait bien le choisir pour changer les triggers
     if rotate == len(queue) and facts_of_interests:
-        confirmed_facts = graph.get_confirmed_facts()
-        facts_of_interests = facts_of_interests - confirmed_facts # - queries
+        confirmed_facts = graph.get_facts_from_confirmed_clauses()
+        facts_of_interests = facts_of_interests - confirmed_facts
 
         fact_item_content = None
-
+        new_graph = None
         for fact_item_content in facts_of_interests:
             new_graph = copy.deepcopy(graph)
-            new_graph.get_fact(fact_item_content).confirmed = True
-            new_graph.update_confirmed_clauses()
-            backward_inference_motor(new_graph, queries)
+            if {fact_item_content} not in [x.negative_facts for x in graph.confirmed_clauses]:
+                new_graph.confirmed_clauses.add(graph_module.Clause(negative_facts=set(fact_item_content)))
+            # new_graph.get_fact(fact_item_content).confirmed = True
+            # new_graph.update_confirmed_clauses()
+            new_graph = backward_inference_motor(new_graph, queries)
             if not new_graph.contradiction:
                 rotate = 0
                 break
@@ -135,12 +138,6 @@ def check_queue_rotation(graph, queue, facts_of_interests, rotate, queries):
             graph.update_confirmed_clauses()
             queue.sort(key=lambda rule_item: rule_triggered(rule_item, graph.confirmed_clauses), reverse=True)
     return graph, rotate, facts_of_interests
-
-        # confirmed_facts = graph.get_confirmed_facts()
-
-    # return graph
-
-
 
 
 def apply_rule(graph, rule, queue, facts_of_interests):
@@ -244,7 +241,7 @@ def treat_entry(filename):
     ###############
     # Backward_chaining
     g = graph_module.Graph(rules_lst, facts_lst, queries_lst)
-    backward_inference_motor(g, set(queries_lst))
+    g = backward_inference_motor(g, set(queries_lst))
 
     if g.contradiction:
         display_string = "Contradiction on fact {}.\n".format(g.contradiction)

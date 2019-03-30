@@ -104,6 +104,7 @@ class Graph:
         self.facts_set = set()  # Facts
         self.rules_set = set()  # Rules
         self.confirmed_clauses = set()  # ??
+        self.hypothesis_clauses = set()
         self.contradiction = None
 
         for rule_content in rules_lst:
@@ -166,7 +167,22 @@ class Graph:
                 clause = Clause(negative_facts=set(fact.content), confirmed=True)
             else:
                 clause = Clause(positive_facts=set(fact.content), confirmed=True)
-            self.confirmed_clauses.add(clause)
+            already_exists = False
+            for confirmed_clause in self.confirmed_clauses:
+                if (clause.negative_facts == confirmed_clause.negative_facts
+                        and clause.positive_facts == confirmed_clause.positive_facts):
+                    already_exists = True
+            if not already_exists:
+                self.confirmed_clauses.add(clause)
+
+    def get_facts_from_confirmed_clauses(self):
+        confirmed_facts = set()
+        for clause in self.confirmed_clauses:
+            clause_facts = (clause.positive_facts | clause.negative_facts)
+            if len(clause_facts) == 1:
+                fact_content = clause_facts.pop()
+                confirmed_facts.add(fact_content)
+        return confirmed_facts
 
 
 if __name__ == '__main__':
