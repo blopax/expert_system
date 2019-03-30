@@ -1,8 +1,8 @@
 A => B
 B => C
-C=>D
-D=>E
-E=>F
+C => D
+D => E
+E => F
 
 =A
 

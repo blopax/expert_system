@@ -13,6 +13,7 @@ class Fact:
         self.content = content
         self.value = False
         self.confirmed = False
+        self.outcome = None
 
     # contradiction si self confirmed and self value differnt of value inferred
     # ambiguity if query self.confirmed = False and Fact in Clause where fact positive
