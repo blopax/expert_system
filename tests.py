@@ -2,7 +2,7 @@ import unittest
 import os
 import sys
 
-import solver
+import backward_chaining_solver
 from parsing import Parser
 
 
@@ -29,7 +29,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_and_conclusion(self):
         path = 'tests/input/and_conclusion'
@@ -38,7 +38,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_conclusion_same_fact(self):
         path = 'tests/input/conclusion_same_fact'
@@ -47,7 +47,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_eval(self):
         path = 'tests/input/eval'
@@ -56,7 +56,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_imply(self):
         path = 'tests/input/imply'
@@ -73,7 +73,7 @@ class TestExpertSystem(unittest.TestCase):
             else:
                 with open('tests/output/out_{}'.format(filename), 'r') as fd:
                     out = fd.read()
-                self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+                self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_not(self):
         path = 'tests/input/not'
@@ -82,7 +82,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_priority(self):
         path = 'tests/input/priority'
@@ -91,7 +91,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_or(self):
         path = 'tests/input/or'
@@ -100,7 +100,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_xor(self):
         path = 'tests/input/xor'
@@ -109,7 +109,7 @@ class TestExpertSystem(unittest.TestCase):
             with open('tests/output/out_{}'.format(filename), 'r') as fd:
                 out = fd.read()
             # print(filename)
-            self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+            self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
     def test_parsing_error(self):
         path = 'tests/input/parsing_error'
@@ -139,7 +139,7 @@ class TestExpertSystem(unittest.TestCase):
                 with open('tests/output/out_{}'.format(filename), 'r') as fd:
                     out = fd.read()
                 # print(filename)
-                self.assertEqual(solver.treat_entry('{}/{}'.format(path, filename)), out)
+                self.assertEqual(backward_chaining_solver.treat_entry('{}/{}'.format(path, filename)), out)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 import argparse
-import solver
+import backward_chaining_solver
+import resolution_solver
 import parsing
 import node_utils
 import graph as graph_module
@@ -41,7 +42,7 @@ def get_args():
 def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
     new_facts = None
     if not options.interactive:
-        string = solver.solve(rules_list, facts_list, queries_list, new_facts, options.fast)
+        string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list, queries_list, new_facts)
         print(string, end='')
     else:
         input_error = False
@@ -50,7 +51,8 @@ def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
             keep_going = False
         while keep_going:
             if input_error is False:
-                string = solver.solve(rules_list, facts_list, queries_list, new_facts, options.fast)
+                string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list,
+                                                                          queries_list, new_facts)
                 print("{}".format(string), end='')
             new_facts = input("\nPress 'q' to quit or change initial fact. Please provide facts that are true here "
                               "(only capitalize letters no spaces):\n")
@@ -83,8 +85,8 @@ def resolution_algorithm(rules_list, facts_list, queries_list, options):
                 initially_false = list(set(user_input))
                 if set(initially_false) <= set(parsing.ALLOWED_FACTS):
                     initially_false_error = False
-            string = solver.solve(rules_list, facts_list, queries_list, facts_input=new_facts,
-                                  resolution_mode='resolution', initially_false=initially_false)
+            string = resolution_solver.resolution_solve(rules_list, facts_list, queries_list, facts_input=new_facts,
+                                                        initially_false=initially_false)
             print("\n{}".format(string), end='')
         if not options.interactive:
             keep_going = False
@@ -120,31 +122,6 @@ if __name__ == '__main__':
             backward_chaining_algorithm(rules_lst, facts_lst, queries_lst, args)
         else:
             resolution_algorithm(rules_lst, facts_lst, queries_lst, args)
-            # new_facts = None
-            # if not args.interactive:
-            #     string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
-            #     print(string, end='')
-            # else:
-            #     if not rules_lst and not facts_lst and not queries_lst:
-            #         keep_going = False
-            #     else:
-            #         keep_going = True
-            #     input_error = False
-            #     while keep_going:
-            #         if input_error is False:
-            #             string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
-            #             print(string, end='')
-            #         new_facts = input("Press 'q' to quit or change facts here (only capitalize letters no spaces):\n")
-            #         if new_facts == 'q':
-            #             keep_going = False
-            #         else:
-            #             facts_list = list(new_facts)
-            #             if set(facts_list) <= set(parsing.ALLOWED_FACTS):
-            #                 new_facts = list(set(facts_list))
-            #                 input_error = False
-            #             else:
-            #                 input_error = True
-            #                 print("\nWrong input, please try again.")
 
     except Exception as e:
         print(e)

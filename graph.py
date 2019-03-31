@@ -2,13 +2,12 @@ import sys
 
 import parsing
 import node_utils
-import solver
+import resolution_solver
 import utils
 
 
 class Fact:
     def __init__(self, content):
-        # fact clause
         self.content = content
         self.value = False
         self.confirmed = False
@@ -28,7 +27,6 @@ class Clause:
             self.negative_facts = negative_facts
         if node:
             self.make_clause(node)
-        # self.is_literal = (len(self.positive_facts) + len(self.negative_facts) == 1)
         self.all_facts = self.positive_facts | self.negative_facts
         self.is_literal = len(self.all_facts) == 1
 
@@ -88,7 +86,7 @@ class Rule:
         node.transform_graph_and_or(node)
         node.transform_graph_cnf(node)
         node.flatten_graph_cnf()
-        return solver.add_clause(node, confirmed=confirmed)
+        return resolution_solver.add_clause(node, confirmed=confirmed)
 
 
 class Graph:
