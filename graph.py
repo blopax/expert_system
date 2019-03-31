@@ -8,6 +8,7 @@ import utils
 
 class Fact:
     def __init__(self, content):
+        # fact clause
         self.content = content
         self.value = False
         self.confirmed = False
@@ -27,7 +28,9 @@ class Clause:
             self.negative_facts = negative_facts
         if node:
             self.make_clause(node)
-        self.is_literal = (len(self.positive_facts) + len(self.negative_facts) == 1)
+        # self.is_literal = (len(self.positive_facts) + len(self.negative_facts) == 1)
+        self.all_facts = self.positive_facts | self.negative_facts
+        self.is_literal = len(self.all_facts) == 1
 
     def update_clause_attributes(self, confirmed_clauses):
         if self.confirmed is True:
@@ -67,7 +70,8 @@ class Clause:
 
 
 class Rule:
-    def __init__(self, body_content, head_content):
+    def __init__(self, rule_content, body_content, head_content):
+        self.rule_content = rule_content
         self.premise_content = body_content
         self.conclusion_content = head_content
         self.fact_in_premise = set(body_content) & set(parsing.ALLOWED_FACTS)
@@ -98,10 +102,10 @@ class Graph:
         for rule_content in rules_lst:
             symbol, index = node_utils.find_symbol_to_treat(rule_content)
             if symbol == "=>":
-                self.rules_set.add(Rule(rule_content[:index], rule_content[index + 1:]))
+                self.rules_set.add(Rule(rule_content, rule_content[:index], rule_content[index + 1:]))
             elif symbol == "<=>":
-                self.rules_set.add(Rule(rule_content[:index], rule_content[index + 1:]))
-                self.rules_set.add(Rule(rule_content[index + 1:], rule_content[:index]))
+                self.rules_set.add(Rule(rule_content, rule_content[:index], rule_content[index + 1:]))
+                self.rules_set.add(Rule(rule_content, rule_content[index + 1:], rule_content[:index]))
 
         self.facts_in_rules_conclusions = set()
         for rule in self.rules_set:

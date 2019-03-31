@@ -7,6 +7,6 @@ E ^ D => F
 
 =A
 
-?TPF # T and P are True, F is False
+?ABCDETPF # A, P True, reste ambigü
 
-# Il faut utiliser la resolution + updater les facts
+# Il faut utiliser la resolution + updater les facts car dans resolution ambiguite si juste A vrai

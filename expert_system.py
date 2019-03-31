@@ -32,10 +32,75 @@ def get_args():
                         help="Stop once queries are found, doesn't check for potential contradictions related.\n")
     parser.add_argument("-c", "--complete", action="store_true",
                         help="Show if algorithm is complete. (All rules are horn clauses).\n")
-    parser.add_argument("-r", "--resolution_mode", type=str, default="backward_chaining",
+    parser.add_argument("-m", "--resolution_mode", type=str, default="backward_chaining",
                         choices={"backward_chaining", "resolution"},
                         help="Define the resolution mode. Resolution is complete but doesn't change value of facts.\n")
     return parser.parse_args()
+
+
+def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
+    new_facts = None
+    if not options.interactive:
+        string = solver.solve(rules_list, facts_list, queries_list, new_facts, options.fast)
+        print(string, end='')
+    else:
+        input_error = False
+        keep_going = True
+        if not rules_list and not facts_list and not queries_list:
+            keep_going = False
+        while keep_going:
+            if input_error is False:
+                string = solver.solve(rules_list, facts_list, queries_list, new_facts, options.fast)
+                print("{}".format(string), end='')
+            new_facts = input("\nPress 'q' to quit or change initial fact. Please provide facts that are true here "
+                              "(only capitalize letters no spaces):\n")
+            if new_facts == 'q':
+                keep_going = False
+            else:
+                print()
+                facts_list = list(new_facts)
+                if set(facts_list) <= set(parsing.ALLOWED_FACTS):
+                    new_facts = list(set(facts_list))
+                    input_error = False
+                else:
+                    input_error = True
+                    print("\nWrong input, please try again.")
+
+
+def resolution_algorithm(rules_list, facts_list, queries_list, options):
+    new_facts = None
+    initially_false = None
+    keep_going = True
+    input_error = False
+
+    if not rules_list and not facts_list and not queries_list:
+        keep_going = False
+    while keep_going:
+        if input_error is False:
+            initially_false_error = True
+            while initially_false_error:
+                user_input = input("Please provide facts that are false here (only capitalize letters no spaces):\n")
+                initially_false = list(set(user_input))
+                if set(initially_false) <= set(parsing.ALLOWED_FACTS):
+                    initially_false_error = False
+            string = solver.solve(rules_list, facts_list, queries_list, facts_input=new_facts,
+                                  resolution_mode='resolution', initially_false=initially_false)
+            print("\n{}".format(string), end='')
+        if not options.interactive:
+            keep_going = False
+        else:
+            new_facts = input("\nPress 'q' to quit or change initial fact. Please provide facts that are true here "
+                              "(only capitalize letters no spaces):\n")
+            if new_facts == 'q':
+                keep_going = False
+            else:
+                facts_list = list(new_facts)
+                if set(facts_list) <= set(parsing.ALLOWED_FACTS):
+                    new_facts = list(set(facts_list))
+                    input_error = False
+                else:
+                    input_error = True
+                    print("\nWrong input, please try again.")
 
 
 if __name__ == '__main__':
@@ -51,31 +116,35 @@ if __name__ == '__main__':
             if not complete:
                 print("Be aware: some rules are not Horn Clauses. The backward_chaining algorithm is not complete.\n")
 
-        new_facts = None
-        if not args.interactive:
-            string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
-            print(string, end='')
+        if args.resolution_mode == 'backward_chaining':
+            backward_chaining_algorithm(rules_lst, facts_lst, queries_lst, args)
         else:
-            if not rules_lst and not facts_lst and not queries_lst:
-                keep_going = False
-            else:
-                keep_going = True
-            input_error = False
-            while keep_going:
-                if input_error is False:
-                    string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
-                    print(string, end='')
-                new_facts = input("Press 'q' to quit or change facts here (only capitalize letters no spaces):\n")
-                if new_facts == 'q':
-                    keep_going = False
-                else:
-                    facts_list = list(new_facts)
-                    if set(facts_list) <= set(parsing.ALLOWED_FACTS):
-                        new_facts = list(set(facts_list))
-                        input_error = False
-                    else:
-                        input_error = True
-                        print("\nWrong input, please try again.")
+            resolution_algorithm(rules_lst, facts_lst, queries_lst, args)
+            # new_facts = None
+            # if not args.interactive:
+            #     string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
+            #     print(string, end='')
+            # else:
+            #     if not rules_lst and not facts_lst and not queries_lst:
+            #         keep_going = False
+            #     else:
+            #         keep_going = True
+            #     input_error = False
+            #     while keep_going:
+            #         if input_error is False:
+            #             string = solver.solve(rules_lst, facts_lst, queries_lst, new_facts, args.fast)
+            #             print(string, end='')
+            #         new_facts = input("Press 'q' to quit or change facts here (only capitalize letters no spaces):\n")
+            #         if new_facts == 'q':
+            #             keep_going = False
+            #         else:
+            #             facts_list = list(new_facts)
+            #             if set(facts_list) <= set(parsing.ALLOWED_FACTS):
+            #                 new_facts = list(set(facts_list))
+            #                 input_error = False
+            #             else:
+            #                 input_error = True
+            #                 print("\nWrong input, please try again.")
 
     except Exception as e:
         print(e)

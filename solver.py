@@ -18,17 +18,24 @@ def add_clause(node, confirmed=False):
     return clauses_list
 
 
-def resolution(clause_a, clause_b):
+def resolution(clause_a, clause_b, knowledge_base):
     new_clauses = []
+    if clause_a.is_literal and clause_b.is_literal:
+        return new_clauses
     complementary_facts = (clause_a.positive_facts & clause_b.negative_facts
                            | clause_b.positive_facts & clause_a.negative_facts)
     for complementary_fact in complementary_facts:
-        new_clause = graph_module.Clause()
-        new_clause.positive_facts = (clause_a.positive_facts | clause_b.positive_facts) - set(complementary_fact)
-        new_clause.negative_facts = (clause_a.negative_facts | clause_b.negative_facts) - set(complementary_fact)
-        tautology = new_clause.positive_facts & new_clause.negative_facts
+        positive_facts = (clause_a.positive_facts | clause_b.positive_facts) - set(complementary_fact)
+        negative_facts = (clause_a.negative_facts | clause_b.negative_facts) - set(complementary_fact)
+        tautology = positive_facts & negative_facts
         if not tautology:
-            new_clauses.append(new_clause)
+            new = True
+            for clause in knowledge_base:
+                if positive_facts >= clause.positive_facts and negative_facts >= clause.negative_facts:
+                    new = False
+                    break
+            if new is True:
+                new_clauses.append(graph_module.Clause(positive_facts=positive_facts, negative_facts=negative_facts))
     return new_clauses
 
 
@@ -48,7 +55,6 @@ def check_query(query, clauses_list):
             query.outcome = 'ambiguous'
     if query.outcome is None:
         query.outcome = str(query.value).lower()
-
     return query
 
 
@@ -61,26 +67,81 @@ def resolution_algo(knowledge_base, query):
 
 def resolution_knowledge_base(knowledge_base):
     while True:
-        infered_kb = []
         extending_kb = False
         for index, clause_a in enumerate(knowledge_base[:-1]):
             for clause_b in knowledge_base[index + 1:]:
-                new_clauses = resolution(clause_a, clause_b)
-                for item in set(new_clauses):
-                    infered_kb.append(item)
-        for infered_clause in set(infered_kb):
-            infered_clause_is_new = True
-            for confirmed_clause in set(knowledge_base):
-                same_positive = (infered_clause.positive_facts == confirmed_clause.positive_facts)
-                same_negative = (infered_clause.negative_facts == confirmed_clause.negative_facts)
-                if same_positive and same_negative:
-                    infered_clause_is_new = False
-                    break
-            if infered_clause_is_new is True:
-                knowledge_base += [infered_clause]
-                extending_kb = True
+                new_clauses = resolution(clause_a, clause_b, knowledge_base)
+                if new_clauses:
+                    extending_kb = True
+                    knowledge_base += new_clauses
+        knowledge_base = clean_resolution(knowledge_base)
         if not extending_kb:
             return knowledge_base
+
+
+def initialize_resolution(g, initially_false_facts):
+    kb = set()
+    if initially_false_facts is None:
+        initially_false_facts = []
+    for rule in g.rules_set:
+        kb.update(rule.fill_clauses_from_content(rule.rule_content, confirmed=True))
+    for true_fact_content in g.get_confirmed_facts():
+        fact = g.get_fact(true_fact_content)
+        if fact.value is True:
+            kb.add(graph_module.Clause(positive_facts={true_fact_content}, confirmed=True))
+    for false_fact_content in initially_false_facts:
+        kb.add(graph_module.Clause(negative_facts={false_fact_content}, confirmed=True))
+    return list(kb)
+
+
+def clean_resolution(knowledge_base):
+    useless_clauses = []
+    for index, clause_a in enumerate(knowledge_base[:-1]):
+        if len(clause_a.all_facts) ==0:
+            pass
+        for clause_b in knowledge_base[index + 1:]:
+            if len(clause_b.all_facts) ==0:
+                pass
+            if (clause_a.positive_facts.issubset(clause_b.positive_facts)
+                    and clause_a.negative_facts.issubset(clause_b.negative_facts)):
+                useless_clauses.append(clause_b)
+            elif (clause_b.positive_facts.issubset(clause_a.positive_facts)
+                  and clause_b.negative_facts.issubset(clause_a.negative_facts)):
+                useless_clauses.append(clause_a)
+    for useless_clause in useless_clauses:
+        if useless_clause in knowledge_base:
+            knowledge_base.remove(useless_clause)
+    return knowledge_base
+
+
+def contradiction_in_kb(knowledge_base):
+    contradiction = None
+    kb_only_literals = [clause for clause in knowledge_base if clause.is_literal]
+    for index, clause_a in enumerate(kb_only_literals[:-1]):
+        for clause_b in kb_only_literals[index + 1:]:
+            if (len(clause_a.positive_facts) == 1 and clause_a.positive_facts == clause_b.negative_facts
+                    or len(clause_a.negative_facts) == 1 and clause_a.negative_facts == clause_b.positive_facts):
+                contradiction = clause_a.all_facts.pop()
+                return contradiction
+    return contradiction
+
+
+def display_queries(knowledge_base, queries_lst):
+    display_string = ""
+    kb_only_literals = [clause for clause in knowledge_base if clause.is_literal]
+    queries_lst_copy = copy.deepcopy(queries_lst)
+    for clause in kb_only_literals:
+        literal = list(clause.all_facts)[0]
+        if literal in queries_lst:
+            if len(clause.positive_facts):
+                display_string += "{} is {}.\n".format(literal, 'true')
+            else:
+                display_string += "{} is {}.\n".format(literal, 'negative')
+            queries_lst_copy.remove(literal)
+    for query in queries_lst_copy:
+        display_string += "{} is {}.\n".format(query, 'ambiguous')
+
+    return display_string
 
 
 def backward_inference_motor(graph, queries, fast=None):
@@ -239,21 +300,31 @@ def check_ambiguity(graph, fact):
     return resolution_algo(knowledge_base, fact)
 
 
-def solve(rules_lst, facts_lst, queries_lst, facts_input=None, fast=None):
+def solve(rules_lst, facts_lst, queries_lst, facts_input=None,
+          fast=None, resolution_mode='backward_chaining', initially_false=None):
     if facts_input:
         facts_lst = facts_input
 
     g = graph_module.Graph(rules_lst, facts_lst, queries_lst)
-    g = backward_inference_motor(g, set(queries_lst), fast)
 
-    if g.contradiction:
-        display_string = "Contradiction on fact {}.\n".format(g.contradiction)
+    if resolution_mode == 'resolution':
+        initial_knowledge_base = initialize_resolution(g, initially_false)
+        knowledge_base = resolution_knowledge_base(initial_knowledge_base)
+        g.contradiction = contradiction_in_kb(knowledge_base)
+        if g.contradiction:
+            display_string = "Contradiction on fact {}.\n".format(g.contradiction)
+        else:
+            display_string = display_queries(knowledge_base, queries_lst)
     else:
-        define_outcome(g, queries_lst)
-        display_string = ""
-        for query in queries_lst:
-            fact = g.get_fact(query)
-            display_string += "{} is {}.\n".format(query, str(fact.outcome))
+        g = backward_inference_motor(g, set(queries_lst), fast)
+        if g.contradiction:
+            display_string = "Contradiction on fact {}.\n".format(g.contradiction)
+        else:
+            define_outcome(g, queries_lst)
+            display_string = ""
+            for query in queries_lst:
+                fact = g.get_fact(query)
+                display_string += "{} is {}.\n".format(query, str(fact.outcome))
     return display_string
 
 
@@ -270,33 +341,6 @@ if __name__ == '__main__':
         filepath = sys.argv[1]
         parser = parsing.Parser(filepath)
         rules_list, facts_list, queries_list = parser.parse_file()
-
-        # ################
-        # #Resolution
-        # list_input = []
-        # # for i, x in enumerate(rules_lst):
-        # #     list_input = list_input + ['('] + x + [')']
-        # #     if i != len(rules_lst) - 1:
-        # #         list_input += ['+']
-        # # root = node_utils.Node(list_input=list_input)
-        # import node_utils
-        # # rule_example = ['A', '=>', 'B', '<=>', '!', '(', '!', '!', 'C', '+', '!', '!', 'D', ')', '+', 'A']
-        # # rule_example = ['(', 'A', '=>', 'C', ')', '+', '(', 'C', '=>', 'B', ')', '+', 'A']
-        # # rule_example = ['(', 'A', '=>', 'C', ')' '+', '(', 'C', '=>', 'B', ')', '+', 'A']
-        # rule_example = ['C', '+', '!', '(', '!', 'B', '+', 'H', '+', '!', '(', '!', '(', 'A', '+', 'G', ')', '+',
-        # 'D', ')', ')', '+', 'A', '+', 'B']
-        # # pb ne voit pas manque , entre ) et +
-        # root = node_utils.Node(list_input=rule_example)
-        # root.transform_graph_and_or(root)
-        # root.transform_graph_cnf(root)
-        # root.flatten_graph_cnf()
-        # node_utils.show_graph(root)
-        # # node_utils.show_graph(root)
-        # cl_list = add_clause(root)
-        # #cl_list.append(graph.Clause(positive_facts={'A'}))
-        # #cl_list.append(graph.Clause(positive_facts={'C'}))
-        # print(resolution_algo(cl_list, 'D'))
-        # # ################
 
     except Exception as e:
         print(e)
