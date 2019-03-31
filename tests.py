@@ -3,7 +3,7 @@ import os
 import sys
 
 import solver
-from parser import Parser
+from parsing import Parser
 
 
 class ListStream:

@@ -2,7 +2,7 @@ import sys
 import os
 import utils
 
-ALLOWED_FACTS = [chr(i) for i in range(65, 91)]  # ['A' to 'Z']
+ALLOWED_FACTS = [chr(i) for i in range(65, 91)]
 BINARY_OPERATORS = ['+', '|', '^', '=>', '<=>']
 OTHER_OPERATORS = ['!', '(', ')']
 
@@ -144,7 +144,7 @@ class Parser:
         try:
             lines = self.file_to_lines()
             rule_lines, fact_lines, query_lines = [], [], []
-            block = 0  # block goal is to make sure lines are sequential
+            block = 0
             for line in lines:
                 if "=>" in line and block <= 1:
                     rule_lines.append(self.strip_comment(line))
@@ -179,22 +179,16 @@ class Parser:
             return rules, facts, queries
         except Exception as err:
             print(err)
-            return [], [], []  # use les finally ? ou except pour unpack ?
-            # raise ??
+            return [], [], []
 
 
 if __name__ == "__main__":
     try:
         if len(sys.argv) != 2:
             raise Exception(utils.INPUT_ERROR)
-        # put in main d expert system
         file = sys.argv[1]
         parse = Parser(file)
         rules_lst, facts_lst, queries_lst = parse.parse_file()
         print(rules_lst, "\n", facts_lst, "\n", queries_lst)
-    except OSError: #Exception as e:
-        pass
-        #print(e)
-
-# rq ac parenthese : que se passe-t-il si ((A + B) <=> C)
-# rq : parse devrait il retourner un dico plutot que 3 listes ?
+    except Exception as e:
+        print(e)

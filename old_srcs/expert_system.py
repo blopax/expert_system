@@ -1,7 +1,7 @@
 import sys
 import os
 
-from parser import Parser
+from parsing import Parser
 from node import Graph
 from solver import Solver
 

@@ -1,4 +1,4 @@
-import parser
+import parsing
 import node_utils
 import graph
 
@@ -37,10 +37,10 @@ class Node:
         self.content = symbol  # a voir si on verifie que symbole est ds liste authorisee ?
         if symbol == '!':
             self.children.append(Node(list_input=list_input[index + 1:], depth=self.depth + 1))
-        if symbol in parser.BINARY_OPERATORS:
+        if symbol in parsing.BINARY_OPERATORS:
             self.children.append(Node(list_input=list_input[:index], depth=self.depth + 1))
             self.children.append(Node(list_input=list_input[index + 1:], depth=self.depth + 1))
-        if symbol in parser.ALLOWED_FACTS:
+        if symbol in parsing.ALLOWED_FACTS:
             self.children = []  # raise exception ?
             if self.graph:
                 self.fact = self.graph.get_fact(symbol)
@@ -64,7 +64,7 @@ class Node:
             node_utils.transform_xor(node)
         elif node.content == '!':
             child = node.children[0]
-            if child.content not in parser.ALLOWED_FACTS:
+            if child.content not in parsing.ALLOWED_FACTS:
                 tmp = node_utils.transform_not(child)
                 node_utils.update_depth_node(tmp, -1)
                 node_utils.update_node(node, content=child.content, depth=tmp.depth, children=tmp.children)
@@ -152,22 +152,8 @@ class Node:
 
 
 if __name__ == '__main__':
-    #     try:
-    #         if len(sys.argv) != 2:
-    #             raise Exception(utils.INPUT_ERROR)
-    #         # put in main d expert system
-    #         file = sys.argv[1]
-    #         parse = parser.Parser(file)
-    #         rules_lst, facts_lst, queries_lst = parse.parse_file()
-    #         print(rules_lst, "\n", facts_lst, "\n", queries_lst)
-    #     except Exception as e:
-    #         print(e)
-
     rule = ['A', '=>', 'B', '<=>', '!', '(', '!', '!', 'C', '+', '!', '!', 'D', ')',
             '<=>', '(', 'A', '|', 'B', ')', '+', 'C', ')', '=>', 'C', '|', 'D']
-    # rule = ['(', '(', '(', 'A', '|', '(', '!', 'C', '|', '!', 'D', ')', ')',
-    # '+', '(', 'A', '|', 'A', ')', ')', '+', 'A', ')', '+', 'B']
-    rule = ['!', 'A', '|', '!', '!', '!', '!', '!', '!', 'B', '+', '!', '!', '!', '!', '!', 'D']
 
     root = Node(list_input=rule)
     node_utils.show_graph(root)

@@ -1,4 +1,4 @@
-import parser
+import parsing
 from node import Node
 
 
@@ -24,9 +24,9 @@ def find_symbol_to_treat(list_input):
         symbol = '+'
     elif '!' in no_parenthesis_input:
         symbol = '!'
-    elif len(list_input) > 0 and list_input[0] in parser.ALLOWED_FACTS:
+    elif len(list_input) > 0 and list_input[0] in parsing.ALLOWED_FACTS:
         symbol = list_input[0]
-    if symbol in parser.BINARY_OPERATORS:
+    if symbol in parsing.BINARY_OPERATORS:
         symbol_loc = [loc for loc, val in enumerate(no_parenthesis_input) if val == symbol]
         if symbol_loc:
             index = symbol_loc[-1]
@@ -34,8 +34,6 @@ def find_symbol_to_treat(list_input):
         index = 0
     return symbol, index
 
-
-# voir si raise exception
 
 def clean_parenthesis(list_input):
     """
@@ -103,10 +101,8 @@ def show_graph(node, vertical_lines=None):
                                                children=node.children, depth=node.depth)
         show_graph(child, vertical_lines)
 
-# changer nom en show node_tree
 
-
-def copy_node(node):  # replace par deep copy ?
+def copy_node(node):
     node_copy = Node()
     node_copy.content = node.content
     node_copy.depth = node.depth
@@ -234,6 +230,6 @@ def transform_not(node):
         node = not__imply_or_and(node, '+', True)
     elif node.content == '+':
         node = not__imply_or_and(node, '|', True)
-    elif node.content in parser.ALLOWED_FACTS:
+    elif node.content in parsing.ALLOWED_FACTS:
         node = not_fact(node)
     return node

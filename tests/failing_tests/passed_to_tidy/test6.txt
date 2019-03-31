@@ -4,3 +4,5 @@ F + C => D
 
 =
 ?E
+
+# only horn clauses
