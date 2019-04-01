@@ -1,8 +1,8 @@
+import copy
+
 import parsing
 import node_utils
 import graph
-
-import copy
 
 
 class Node:
@@ -34,20 +34,18 @@ class Node:
         if symbol == '()':
             self.fill_node(list_input[1:-1])
             return
-        self.content = symbol  # a voir si on verifie que symbole est ds liste authorisee ?
+        self.content = symbol
         if symbol == '!':
             self.children.append(Node(list_input=list_input[index + 1:], depth=self.depth + 1))
         if symbol in parsing.BINARY_OPERATORS:
             self.children.append(Node(list_input=list_input[:index], depth=self.depth + 1))
             self.children.append(Node(list_input=list_input[index + 1:], depth=self.depth + 1))
         if symbol in parsing.ALLOWED_FACTS:
-            self.children = []  # raise exception ?
+            self.children = []
             if self.graph:
                 self.fact = self.graph.get_fact(symbol)
             if self.fact is None:
                 self.fact = graph.Fact(symbol)
-
-        # a verifier
 
     def transform_graph_and_or_step(self, node):
         """

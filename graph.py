@@ -1,9 +1,8 @@
 import sys
 
-import parsing
 import node_utils
 import resolution_solver
-import utils
+import parsing
 
 
 class Fact:
@@ -175,7 +174,7 @@ class Graph:
 if __name__ == '__main__':
     try:
         if len(sys.argv) != 2:
-            raise Exception(utils.INPUT_ERROR)
+            raise Exception(parsing.INPUT_ERROR)
         file = sys.argv[1]
         parse = parsing.Parser(file)
         rules_list, facts_list, queries_list = parse.parse_file()

@@ -4,9 +4,8 @@ A => C ^ D
 !E ^ D => T
 E | C => P
 E ^ D => F
+G => A
 
 =A
 
-?ABCDETPF # A, P True, reste ambigü
-
-# Il faut utiliser la resolution + updater les facts car dans resolution ambiguite si juste A vrai
+?ABCDETPFG # A, P true

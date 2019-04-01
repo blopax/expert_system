@@ -17,7 +17,7 @@ def add_clause(node, confirmed=False):
 def check_query(query, clauses_list):
     for clause in clauses_list:
         tautology = False
-        for literal_clause in [clause_item for clause_item in clauses_list if len(clause_item.all_facts) == 1]:
+        for literal_clause in [clause_item for clause_item in clauses_list if clause.is_literal]:
             if (literal_clause.positive_facts <= clause.positive_facts
                     and literal_clause.negative_facts <= clause.negative_facts):
                 tautology = True
@@ -121,25 +121,54 @@ def contradiction_in_kb(knowledge_base):
     return contradiction
 
 
-def display_queries(knowledge_base, queries_lst):
+def display_advice(query, clause_list, show, mode='backward_chaining'):
+    if not clause_list and mode == 'resolution':
+        advice_str = "undefined."
+    elif not clause_list:
+        advice_str = "false."
+    else:
+        advice_str = "ambiguous."
+    if show and clause_list:
+        clause_list.sort(key=lambda x: len(x.all_facts))
+        advice_clause = clause_list[0]
+        negative = "".join(list(advice_clause.positive_facts - {query}))
+        positive = "".join(list(advice_clause.negative_facts - {query}))
+        if mode == 'resolution' or len(positive) > 0:
+            advice_str += " Consider initially setting"
+        if len(negative) > 0 and mode == 'resolution':
+            advice_str += " {} to false".format(negative)
+        if len(positive) > 0:
+            advice_str += " {} to true".format(positive)
+    return advice_str
+
+
+def display_queries(knowledge_base, queries_lst, show_advice, mode='resolution'):
     display_string = ""
+    knowledge_base = resolution_knowledge_base(knowledge_base)
     kb_only_literals = [clause for clause in knowledge_base if clause.is_literal]
     queries_lst_copy = copy.deepcopy(queries_lst)
-    for clause in kb_only_literals:
-        literal = list(clause.all_facts)[0]
-        if literal in queries_lst:
-            if len(clause.positive_facts):
-                display_string += "{} is {}.\n".format(literal, 'true')
-            else:
-                display_string += "{} is {}.\n".format(literal, 'negative')
-            queries_lst_copy.remove(literal)
-    for query in queries_lst_copy:
-        display_string += "{} is {}.\n".format(query, 'ambiguous')
 
+    for query in queries_lst_copy:
+        assigned = False
+        for clause in kb_only_literals:
+            literal = list(clause.all_facts)[0]
+            if literal == query:
+                if len(clause.positive_facts):
+                    display_string += "{} is {}.\n".format(literal, 'true')
+                else:
+                    display_string += "{} is {}.\n".format(literal, 'false')
+                assigned = True
+        clause_list = []
+        if not assigned:
+            for clause in set(knowledge_base):
+                if query in clause.all_facts:
+                    clause_list.append(clause)
+            advice_str = display_advice(query, clause_list, show_advice, mode=mode)
+            display_string += "{} is {}\n".format(query, advice_str)
     return display_string
 
 
-def resolution_solve(rules_lst, facts_lst, queries_lst, facts_input=None, initially_false=None):
+def resolution_solve(rules_lst, facts_lst, queries_lst, facts_input=None, initially_false=None, display=False):
     if facts_input:
         facts_lst = facts_input
 
@@ -151,6 +180,6 @@ def resolution_solve(rules_lst, facts_lst, queries_lst, facts_input=None, initia
     if g.contradiction:
         display_string = "Contradiction on fact {}.\n".format(g.contradiction)
     else:
-        display_string = display_queries(knowledge_base, queries_lst)
+        display_string = display_queries(knowledge_base, queries_lst, display)
 
     return display_string

@@ -30,7 +30,10 @@ def get_args():
     parser.add_argument("-i", "--interactive", action="store_true",
                         help="Show the time needed to resolve the npuzzle.\n")
     parser.add_argument("-f", "--fast", action="store_true",
-                        help="Stop once queries are found, doesn't check for potential contradictions related.\n")
+                        help="For backward chaining mode. Stop once queries are found, "
+                             "doesn't check for potential contradictions related.\n")
+    parser.add_argument("-a", "--advice", action="store_true",
+                        help="Give advice for setting initial facts if ambiguity.\n")
     parser.add_argument("-c", "--complete", action="store_true",
                         help="Show if algorithm is complete. (All rules are horn clauses).\n")
     parser.add_argument("-m", "--resolution_mode", type=str, default="backward_chaining",
@@ -42,7 +45,8 @@ def get_args():
 def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
     new_facts = None
     if not options.interactive:
-        string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list, queries_list, new_facts)
+        string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list, queries_list, new_facts,
+                                                                  fast=options.fast, advice=options.advice)
         print(string, end='')
     else:
         input_error = False
@@ -51,8 +55,8 @@ def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
             keep_going = False
         while keep_going:
             if input_error is False:
-                string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list,
-                                                                          queries_list, new_facts)
+                string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list, queries_list,
+                                                                          new_facts, fast=options.fast)
                 print("{}".format(string), end='')
             new_facts = input("\nPress 'q' to quit or change initial fact. Please provide facts that are true here "
                               "(only capitalize letters no spaces):\n")
@@ -86,7 +90,7 @@ def resolution_algorithm(rules_list, facts_list, queries_list, options):
                 if set(initially_false) <= set(parsing.ALLOWED_FACTS):
                     initially_false_error = False
             string = resolution_solver.resolution_solve(rules_list, facts_list, queries_list, facts_input=new_facts,
-                                                        initially_false=initially_false)
+                                                        initially_false=initially_false, display=options.advice)
             print("\n{}".format(string), end='')
         if not options.interactive:
             keep_going = False

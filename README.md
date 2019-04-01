@@ -1,7 +1,7 @@
 [![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-360/)
 [![Build Status](https://travis-ci.com/blopax/expert_system.svg?branch=master)](https://travis-ci.com/blopax/expert_system)
 
-# expert system
+# Expert system
 
 Expert system solver in python 3.7.  
 
@@ -12,8 +12,9 @@ A set of options is given:
 - An interactive mode where the user can change the initial true facts
 - A "fast" mode where the algorithm stops as soon as it finds a confirmed value for all the queries. 
 It doesn't continue the search to look for contradictions.
+- An 'advice' mode for when there are ambiguous queries. Program will make a proposition on how to change initial facts
 - A "complete" option that will explicitly mention if the initial ruleset contains non Horn clauses rules.
-- A resolution mode that defaults to backward chaining inference motor 
+- A mode option that defaults to backward chaining inference motor but can be set to resolution mode.
 
 
 ## Objective
@@ -32,11 +33,8 @@ A + B => C
 
 Please note that the subject explicitly provides examples with rules that are not 
 horn clauses and to use a backward chaining algorithm. 
-Only facts that are true are provided in the initial file.   
-By default, all facts are false, and can only be made true by the initial facts statement,or by application of a rule. 
-A fact can only be undetermined if the ruleset is ambigu-ous, for example if I say "A is true, also if A then B or C", 
-then B and C are undetermined.  
-This has consequences on the way the subject is tackled.
+Only facts that are true are provided in the initial file.    
+This has consequences on the way the subject is tackled (see note on resolution_mode).
 
 
 ### How to run the program
@@ -45,7 +43,7 @@ You must have python3 installed.
 Run the program as follow:
 
 <pre>
-python3 expert_system.py [-h] [-i] [-f] [-c]
+python3 expert_system.py [-h] [-i] [-f] [=a] [-c]
                          [-r {backward_chaining,resolution}]
                          filename
 </pre>
@@ -82,11 +80,25 @@ A + B<=> !C     # A and B if and only if not C
 <pre>
 -h, --help            show this help message and exit
 -i, --interactive     user can change the initial true facts on the fly
--f, --fast            algorithm stops as soon as queries values are confirmed 
+-f, --fast            algorithm stops as soon as queries values are confirmed. (only for backward chaining resolution_mode) 
+-a, --advice          program displays some advice if some facts are ambiguous.   
 -c, --complete        program says if ruleset contains rules that are not Horn clauses
 -r, --resolution_mode {backward_chaining,resolution}
                       choose the resolution mode. default to backward_chaining
-</pre>
+</pre>  
+
+### Note on the resolution_mode
+The 2 modes are conceptually quite different:
+The backward chaining inference motor is dynamic resolution. 
+By default, all facts are false, and can only be made true by the initial facts statement,or by application of a rule. 
+A fact can only be undetermined if the ruleset is ambiguous, for example if I say "A is true, also if A then B or C", 
+then B and C are undetermined.
+Backward chaining inference is sound. It is complete if and only if all the rules are horn clauses.
+
+When set to 'resolution', the program will ask the user to fill the facts that are False.
+The facts that are not initially set to True or False will by default `undefined` except if the resolution 
+algorithm set them to a specific value.
+Resolution algorithm is sound and complete.
 
 
 ### Results displayed

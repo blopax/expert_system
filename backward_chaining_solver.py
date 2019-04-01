@@ -141,16 +141,7 @@ def update_facts(graph, new_confirmed_clauses):
                     graph.contradiction = fact_content
 
 
-def define_outcome(graph, queries_lst):
-    fact_queries_set = {graph.get_fact(fact_content) for fact_content in queries_lst}
-    for fact in graph.facts_set & fact_queries_set:
-        if fact.confirmed is False:
-            check_ambiguity(graph, fact)
-        else:
-            fact.outcome = str(fact.value).lower()
-
-
-def check_ambiguity(graph, fact):
+def define_outcome(graph, queries_lst, advice):
     ambiguity_clauses = {clause for clause in graph.confirmed_clauses if clause.is_literal is False}
     confirmed_facts_positive = {fact for fact in graph.facts_set if fact.confirmed is True and fact.value is True}
     confirmed_facts_negative = {fact for fact in graph.facts_set if fact.confirmed is True and fact.value is False}
@@ -158,24 +149,19 @@ def check_ambiguity(graph, fact):
                                | {graph_module.Clause(negative_facts={fact.content}) for fact in
                                   confirmed_facts_negative})
     knowledge_base = list(ambiguity_clauses | confirmed_facts_clauses)
-    return resolution_solver.resolution_algo(knowledge_base, fact)
+    return resolution_solver.display_queries(knowledge_base, queries_lst, advice, mode='backward_chaining')
 
 
-def backward_chaining_solve(rules_lst, facts_lst, queries_lst, facts_input=None, fast=None):
+def backward_chaining_solve(rules_lst, facts_lst, queries_lst, facts_input=None, fast=None, advice=False):
     if facts_input:
         facts_lst = facts_input
-
     g = graph_module.Graph(rules_lst, facts_lst, queries_lst)
 
     g = backward_inference_motor(g, set(queries_lst), fast)
     if g.contradiction:
         display_string = "Contradiction on fact {}.\n".format(g.contradiction)
     else:
-        define_outcome(g, queries_lst)
-        display_string = ""
-        for query in queries_lst:
-            fact = g.get_fact(query)
-            display_string += "{} is {}.\n".format(query, str(fact.outcome))
+        display_string = define_outcome(g, queries_lst, advice)
     return display_string
 
 

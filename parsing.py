@@ -1,10 +1,21 @@
 import sys
 import os
-import utils
 
 ALLOWED_FACTS = [chr(i) for i in range(65, 91)]
 BINARY_OPERATORS = ['+', '|', '^', '=>', '<=>']
 OTHER_OPERATORS = ['!', '(', ')']
+
+RULE_SYNTAX = "Rule syntax error in rule '{}'\nat symbol position {}: '{}'"
+RULE_SYNTAX_PARENTHESIS = "Rule syntax error with parenthesis in rule '{}'"
+RULE_SYNTAX_UNAUTHORIZED_CHAR = "Rule syntax error: unauthorized character: {}\nin rule: '{}'"
+FACT_QUERY_SYNTAX = 'All {} should be on one single line.'
+FACT_QUERY_SYNTAX_DOUBLE = "Some {} appear twice in '{}'"
+FACT_QUERY_SYNTAX_UNAUTHORIZED_CHAR = "Some {} are not allowed in '{}':\n{}"
+FILE_SYNTAX = """File syntax error:
+File should contain first rules with '=>' or '<=>', then facts starting with '=' and finally queries starting with '?'.
+Nothing else but comments is accepted.)"""
+FILE_INPUT_ERROR = "File input error: please provide a .txt file."
+INPUT_ERROR = "Please provide only one parameter: the filename."
 
 
 class Parser:
@@ -56,9 +67,9 @@ class Parser:
             else:  # ! and ( already treated above
                 forbid_before, forbid_after = [], []
             if index > 0 and rule[index - 1] in forbid_before:
-                raise Exception(utils.RULE_SYNTAX.format(''.join(rule), index, x))
+                raise Exception(RULE_SYNTAX.format(''.join(rule), index, x))
             if index + 1 < len(rule) and rule[index + 1] in forbid_after:
-                raise Exception(utils.RULE_SYNTAX.format(''.join(rule), index, x))
+                raise Exception(RULE_SYNTAX.format(''.join(rule), index, x))
         except Exception:
             raise
 
@@ -70,9 +81,9 @@ class Parser:
         """
         try:
             if rule[0] in BINARY_OPERATORS + [')']:
-                raise Exception(utils.RULE_SYNTAX.format(''.join(rule), 0, rule[0]))
+                raise Exception(RULE_SYNTAX.format(''.join(rule), 0, rule[0]))
             if rule[-1] in BINARY_OPERATORS + ['(', '!']:
-                raise Exception(utils.RULE_SYNTAX.format(''.join(rule), len(rule) - 1, rule[-1]))
+                raise Exception(RULE_SYNTAX.format(''.join(rule), len(rule) - 1, rule[-1]))
             open_par = 0
             for i, x in enumerate(rule):
                 if x == '(':
@@ -81,9 +92,9 @@ class Parser:
                     open_par -= 1
                 self.check_x(rule, i, x)
                 if open_par < 0:
-                    raise Exception(utils.RULE_SYNTAX_PARENTHESIS.format(''.join(rule)))
+                    raise Exception(RULE_SYNTAX_PARENTHESIS.format(''.join(rule)))
             if open_par != 0:
-                raise Exception(utils.RULE_SYNTAX_PARENTHESIS.format(''.join(rule)))
+                raise Exception(RULE_SYNTAX_PARENTHESIS.format(''.join(rule)))
             return False
         except Exception:
             raise
@@ -101,7 +112,7 @@ class Parser:
                 unauthorized_char = set(rule_line) - (set(ALLOWED_FACTS) | set(BINARY_OPERATORS) |
                                                       set(OTHER_OPERATORS) | {'<', '=', '>'})
                 if unauthorized_char:
-                    raise Exception(utils.RULE_SYNTAX_UNAUTHORIZED_CHAR.format(unauthorized_char, rule_line))
+                    raise Exception(RULE_SYNTAX_UNAUTHORIZED_CHAR.format(unauthorized_char, rule_line))
                 rule_line = rule_line.replace("<=>", "~").replace("=>", "-")
                 rule = list(rule_line)
                 rule = ["<=>" if x == "~" else x for x in rule]
@@ -127,11 +138,10 @@ class Parser:
             char_list = list(lines[0])
             char_list.pop(0)
             if len(char_list) != len(set(char_list)):
-                raise Exception(utils.FACT_QUERY_SYNTAX_DOUBLE.format(fact_or_query, lines[0]))
+                raise Exception(FACT_QUERY_SYNTAX_DOUBLE.format(fact_or_query, lines[0]))
             unauthorized_char = set(char_list) - set(ALLOWED_FACTS)
             if unauthorized_char:
-                raise Exception(utils.FACT_QUERY_SYNTAX_UNAUTHORIZED_CHAR.format(fact_or_query,
-                                                                                 lines[0], unauthorized_char))
+                raise Exception(FACT_QUERY_SYNTAX_UNAUTHORIZED_CHAR.format(fact_or_query, lines[0], unauthorized_char))
             return char_list
         except Exception:
             raise
@@ -158,7 +168,7 @@ class Parser:
                 elif line.startswith("#") or not line:
                     pass
                 else:
-                    raise Exception(utils.FILE_SYNTAX)
+                    raise Exception(FILE_SYNTAX)
             return rule_lines, fact_lines, query_lines
         except Exception:
             raise
@@ -171,7 +181,7 @@ class Parser:
         try:
             filename = self.filename
             if filename.split('.')[-1] != "txt" or not os.path.isfile(filename) or os.path.isdir(filename):
-                raise Exception(utils.FILE_INPUT_ERROR)
+                raise Exception(FILE_INPUT_ERROR)
             rule_lines, fact_lines, query_lines = self.get_rules_facts_queries()
             rules = self.check_rules(rule_lines)
             facts = self.check_facts_queries(fact_lines, "facts")
@@ -185,7 +195,7 @@ class Parser:
 if __name__ == "__main__":
     try:
         if len(sys.argv) != 2:
-            raise Exception(utils.INPUT_ERROR)
+            raise Exception(INPUT_ERROR)
         file = sys.argv[1]
         parse = Parser(file)
         rules_lst, facts_lst, queries_lst = parse.parse_file()
