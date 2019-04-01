@@ -43,7 +43,7 @@ You must have python3 installed.
 Run the program as follow:
 
 <pre>
-python3 expert_system.py [-h] [-i] [-f] [=a] [-c]
+python3 expert_system.py [-h] [-i] [-f] [-a] [-c] [-p]
                          [-r {backward_chaining,resolution}]
                          filename
 </pre>
@@ -83,6 +83,7 @@ A + B<=> !C     # A and B if and only if not C
 -f, --fast            algorithm stops as soon as queries values are confirmed. (only for backward chaining resolution_mode) 
 -a, --advice          program displays some advice if some facts are ambiguous.   
 -c, --complete        program says if ruleset contains rules that are not Horn clauses
+-p, --proof           program propose a proof for each query. (only for backward chaining. Raises a warning if not complete) 
 -r, --resolution_mode {backward_chaining,resolution}
                       choose the resolution mode. default to backward_chaining
 </pre>  

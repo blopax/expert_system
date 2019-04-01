@@ -36,17 +36,19 @@ def get_args():
                         help="Give advice for setting initial facts if ambiguity.\n")
     parser.add_argument("-c", "--complete", action="store_true",
                         help="Show if algorithm is complete. (All rules are horn clauses).\n")
+    parser.add_argument("-p", "--proof", action="store_true",
+                        help="Show proof for backward chaining mode. (All rules should be horn clauses).\n")
     parser.add_argument("-m", "--resolution_mode", type=str, default="backward_chaining",
                         choices={"backward_chaining", "resolution"},
                         help="Define the resolution mode. Resolution is complete but doesn't change value of facts.\n")
     return parser.parse_args()
 
 
-def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
+def backward_chaining_algorithm(rules_list, facts_list, queries_list, args):
     new_facts = None
-    if not options.interactive:
+    if not args.interactive:
         string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list, queries_list, new_facts,
-                                                                  fast=options.fast, advice=options.advice)
+                                                                  fast=args.fast, advice=args.advice, proof=args.proof)
         print(string, end='')
     else:
         input_error = False
@@ -56,7 +58,7 @@ def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
         while keep_going:
             if input_error is False:
                 string = backward_chaining_solver.backward_chaining_solve(rules_list, facts_list, queries_list,
-                                                                          new_facts, fast=options.fast)
+                                                                          new_facts, fast=args.fast, proof=args.proof)
                 print("{}".format(string), end='')
             new_facts = input("\nPress 'q' to quit or change initial fact. Please provide facts that are true here "
                               "(only capitalize letters no spaces):\n")
@@ -73,7 +75,7 @@ def backward_chaining_algorithm(rules_list, facts_list, queries_list, options):
                     print("\nWrong input, please try again.")
 
 
-def resolution_algorithm(rules_list, facts_list, queries_list, options):
+def resolution_algorithm(rules_list, facts_list, queries_list, args):
     new_facts = None
     initially_false = None
     keep_going = True
@@ -90,9 +92,9 @@ def resolution_algorithm(rules_list, facts_list, queries_list, options):
                 if set(initially_false) <= set(parsing.ALLOWED_FACTS):
                     initially_false_error = False
             string = resolution_solver.resolution_solve(rules_list, facts_list, queries_list, facts_input=new_facts,
-                                                        initially_false=initially_false, display=options.advice)
+                                                        initially_false=initially_false, display=args.advice)
             print("\n{}".format(string), end='')
-        if not options.interactive:
+        if not args.interactive:
             keep_going = False
         else:
             new_facts = input("\nPress 'q' to quit or change initial fact. Please provide facts that are true here "
@@ -111,21 +113,25 @@ def resolution_algorithm(rules_list, facts_list, queries_list, options):
 
 if __name__ == '__main__':
     try:
-        args = get_args()
-        filename = args.filename
+        options = get_args()
+        filename = options.filename
 
         parse = parsing.Parser(filename)
         rules_lst, facts_lst, queries_lst = parse.parse_file()
 
-        if args.complete and args.resolution_mode == "backward_chaining":
+        if (options.complete or options.proof) and options.resolution_mode == "backward_chaining":
             complete = check_if_rules_horn_clauses(rules_lst)
             if not complete:
-                print("Be aware: some rules are not Horn Clauses. The backward_chaining algorithm is not complete.\n")
+                print("Be aware: some rules are not Horn Clauses. The backward_chaining algorithm is not complete.")
+                if options.proof:
+                    print("The proof may therefore be incomplete. It should work most of the time for simple proofs.\n")
+                else:
+                    print()
 
-        if args.resolution_mode == 'backward_chaining':
-            backward_chaining_algorithm(rules_lst, facts_lst, queries_lst, args)
+        if options.resolution_mode == 'backward_chaining':
+            backward_chaining_algorithm(rules_lst, facts_lst, queries_lst, options)
         else:
-            resolution_algorithm(rules_lst, facts_lst, queries_lst, args)
+            resolution_algorithm(rules_lst, facts_lst, queries_lst, options)
 
     except Exception as e:
         print(e)

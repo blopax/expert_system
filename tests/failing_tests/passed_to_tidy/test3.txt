@@ -2,4 +2,4 @@ A => B + C
 D => !C
 
 =AD
-?B #should be true
+?B

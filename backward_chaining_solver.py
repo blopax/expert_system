@@ -58,7 +58,7 @@ def apply_rule(graph, rule, queue, facts_of_interests):
     trigger = rule_triggered(rule, graph.confirmed_clauses)
     if trigger == 1:
         graph.confirmed_clauses.update(copy.deepcopy(rule.conclusion_clauses))
-        update_facts(graph, rule.conclusion_clauses)
+        update_facts(graph, rule)
         new_facts_of_interests = rule.fact_in_conclusion - facts_of_interests
         facts_of_interests.update(new_facts_of_interests)
         add_rules_to_queue(graph, queue, new_facts_of_interests)
@@ -117,7 +117,8 @@ def add_rules_to_queue(graph, queue, new_facts_of_interests):
     return queue
 
 
-def update_facts(graph, new_confirmed_clauses):
+def update_facts(graph, rule):
+    new_confirmed_clauses = rule.conclusion_clauses
     for clause in new_confirmed_clauses:
         if clause.is_literal is True:
             if len(clause.positive_facts) == 1:
@@ -128,6 +129,7 @@ def update_facts(graph, new_confirmed_clauses):
                 if fact and fact.confirmed is False:
                     fact.value = True
                     fact.confirmed = True
+                    fact.triggered_by = "Triggered by rule {}".format("".join(rule.rule_content))
                 elif fact and fact.value is not True:
                     graph.contradiction = fact.content
             else:
@@ -137,22 +139,23 @@ def update_facts(graph, new_confirmed_clauses):
                 fact = graph.get_fact(fact_content)
                 if fact and fact.confirmed is False:
                     fact.confirmed = True
+                    fact.triggered_by = "Triggered by rule {}".format("".join(rule.rule_content))
                 elif fact and fact.value is True:
                     graph.contradiction = fact_content
 
 
-def define_outcome(graph, queries_lst, advice):
-    ambiguity_clauses = {clause for clause in graph.confirmed_clauses if clause.is_literal is False}
-    confirmed_facts_positive = {fact for fact in graph.facts_set if fact.confirmed is True and fact.value is True}
-    confirmed_facts_negative = {fact for fact in graph.facts_set if fact.confirmed is True and fact.value is False}
+def define_outcome(g, queries_lst, advice, proof):
+    ambiguity_clauses = {clause for clause in g.confirmed_clauses if clause.is_literal is False}
+    confirmed_facts_positive = {fact for fact in g.facts_set if fact.confirmed is True and fact.value is True}
+    confirmed_facts_negative = {fact for fact in g.facts_set if fact.confirmed is True and fact.value is False}
     confirmed_facts_clauses = ({graph_module.Clause(positive_facts={fact.content}) for fact in confirmed_facts_positive}
                                | {graph_module.Clause(negative_facts={fact.content}) for fact in
                                   confirmed_facts_negative})
     knowledge_base = list(ambiguity_clauses | confirmed_facts_clauses)
-    return resolution_solver.display_queries(knowledge_base, queries_lst, advice, mode='backward_chaining')
+    return resolution_solver.display_queries(g, knowledge_base, queries_lst, advice, proof, mode='backward_chaining')
 
 
-def backward_chaining_solve(rules_lst, facts_lst, queries_lst, facts_input=None, fast=None, advice=False):
+def backward_chaining_solve(rules_lst, facts_lst, queries_lst, facts_input=None, fast=None, advice=False, proof=False):
     if facts_input:
         facts_lst = facts_input
     g = graph_module.Graph(rules_lst, facts_lst, queries_lst)
@@ -161,7 +164,7 @@ def backward_chaining_solve(rules_lst, facts_lst, queries_lst, facts_input=None,
     if g.contradiction:
         display_string = "Contradiction on fact {}.\n".format(g.contradiction)
     else:
-        display_string = define_outcome(g, queries_lst, advice)
+        display_string = define_outcome(g, queries_lst, advice, proof)
     return display_string
 
 

@@ -1,5 +1,4 @@
 import graph as graph_module
-import copy
 
 
 def add_clause(node, confirmed=False):
@@ -142,21 +141,35 @@ def display_advice(query, clause_list, show, mode='backward_chaining'):
     return advice_str
 
 
-def display_queries(knowledge_base, queries_lst, show_advice, mode='resolution'):
+def display_reasoning(graph, clause, query, mode, show_proof):
+    reasoning_str = ""
+    if len(clause.positive_facts):
+        reasoning_str += "{} is {}.".format(query, 'true')
+    else:
+        reasoning_str += "{} is {}.".format(query, 'false')
+    if show_proof and mode == 'backward_chaining':
+        fact = graph.get_fact(query)
+        if fact.triggered_by:
+            reasoning_str += " {}.\n".format(fact.triggered_by)
+        else:
+            reasoning_str += "\n"
+    else:
+        reasoning_str += "\n"
+
+    return reasoning_str
+
+
+def display_queries(graph, knowledge_base, queries_lst, show_advice, show_proof=False, mode='resolution'):
     display_string = ""
     knowledge_base = resolution_knowledge_base(knowledge_base)
     kb_only_literals = [clause for clause in knowledge_base if clause.is_literal]
-    queries_lst_copy = copy.deepcopy(queries_lst)
 
-    for query in queries_lst_copy:
+    for query in queries_lst:
         assigned = False
         for clause in kb_only_literals:
             literal = list(clause.all_facts)[0]
             if literal == query:
-                if len(clause.positive_facts):
-                    display_string += "{} is {}.\n".format(literal, 'true')
-                else:
-                    display_string += "{} is {}.\n".format(literal, 'false')
+                display_string += display_reasoning(graph, clause, query, mode, show_proof)
                 assigned = True
         clause_list = []
         if not assigned:
@@ -180,6 +193,6 @@ def resolution_solve(rules_lst, facts_lst, queries_lst, facts_input=None, initia
     if g.contradiction:
         display_string = "Contradiction on fact {}.\n".format(g.contradiction)
     else:
-        display_string = display_queries(knowledge_base, queries_lst, display)
+        display_string = display_queries(g, knowledge_base, queries_lst, display)
 
     return display_string

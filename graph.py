@@ -10,7 +10,7 @@ class Fact:
         self.content = content
         self.value = False
         self.confirmed = False
-        self.outcome = None
+        self.triggered_by = None
 
 
 class Clause:
@@ -132,6 +132,7 @@ class Graph:
             fact = self.get_fact(initial_fact)
             fact.value = True
             fact.confirmed = True
+            fact.triggered_by = 'Set by initial facts'
         facts_in_conclusions = set()
         for rule in self.rules_set:
             facts_in_conclusions.update(rule.fact_in_conclusion)
@@ -139,6 +140,7 @@ class Graph:
         for fact_not_in_conclusions in facts_not_in_conclusions:
             fact = self.get_fact(fact_not_in_conclusions)
             fact.confirmed = True
+            fact.triggered_by = 'Set by initial facts'
 
     def get_confirmed_facts(self):
         confirmed_facts = set()
